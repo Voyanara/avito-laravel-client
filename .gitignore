@@ -4,6 +4,5 @@ composer.lock
 /php/
 /tests/database.sqlite
 /.env.testing
-/rector.php
 /Dockerfile
 /docker-compose.yml
