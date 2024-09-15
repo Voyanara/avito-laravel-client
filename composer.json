@@ -1,0 +1,49 @@
+{
+    "name": "kitsen-artem/avito-laravel-client",
+    "description": "A Laravel package for integrating with the Avito API, allowing seamless interaction with Avito features and data from your Laravel application.",
+    "type": "library",
+    "version": "1.0.0",
+    "keywords": ["laravel","avito","api", "client", "HTTP client", "php"
+    ],
+    "require": {
+        "php": "^8.3",
+        "spatie/laravel-data": "^4.9",
+        "laravel/framework": "^11.0"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^11.3",
+        "orchestra/testbench": "^9.4",
+        "pestphp/pest": "^3.0",
+        "pestphp/pest-plugin-laravel": "^3.0",
+        "rector/rector": "^1.2",
+        "laravel/pint": "^1.17"
+    },
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Voyanara\\LaravelApiClient\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Voyanara\\LaravelApiClient\\Tests\\": "tests/"
+        }
+    },
+    "authors": [
+        {
+            "name": "Kitsen Artem"
+        }
+    ],
+    "config": {
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Voyanara\\LaravelApiClient\\Infrastructure\\Providers\\AvitoModuleServiceProvider"
+            ]
+        }
+    }
+}
