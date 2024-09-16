@@ -4,4 +4,4 @@ pint:
 
 rector:
 	./vendor/bin/rector process --dry-run
-	vendor/bin/rector process
+	./vendor/bin/rector process

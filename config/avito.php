@@ -1,13 +1,13 @@
 <?php
 
-    /*
-    |--------------------------------------------------------------------------
-    | Avito API Configuration
-    |--------------------------------------------------------------------------
-    | This file is for storing the configuration settings for the Avito API.
-    | You can set the API URL, client ID, secret, token storage method, and
-    | the file name for storing the token.
-    */
+/*
+|--------------------------------------------------------------------------
+| Avito API Configuration
+|--------------------------------------------------------------------------
+| This file is for storing the configuration settings for the Avito API.
+| You can set the API URL, client ID, secret, token storage method, and
+| the file name for storing the token.
+*/
 
 return [
     /*

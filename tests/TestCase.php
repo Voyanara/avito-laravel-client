@@ -3,10 +3,10 @@
 namespace Voyanara\LaravelApiClient\Tests;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Voyanara\LaravelApiClient\Infrastructure\Providers\TestingAvitoModuleServiceProvider;
 use Orchestra\Testbench\TestCase as Orchestra;
 use Override;
 use Spatie\LaravelData\LaravelDataServiceProvider;
+use Voyanara\LaravelApiClient\Infrastructure\Providers\TestingAvitoModuleServiceProvider;
 
 class TestCase extends Orchestra
 {

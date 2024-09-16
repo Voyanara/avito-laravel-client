@@ -10,7 +10,7 @@ class TestingAvitoModuleServiceProvider extends PackageServiceProvider
     public function boot(): void
     {
         $this->mergeConfigFrom(
-            __DIR__ . '/../../../config/avito.php', 'avito'
+            __DIR__.'/../../../config/avito.php', 'avito'
         );
 
         $this->loadMigrationsFrom([

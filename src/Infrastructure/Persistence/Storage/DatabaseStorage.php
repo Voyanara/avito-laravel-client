@@ -2,11 +2,11 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Persistence\Storage;
 
+use Override;
 use Voyanara\LaravelApiClient\Domain\Enums\GrantTypesEnum;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\AvitoClientsRepository;
 use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
-use Override;
 
 readonly class DatabaseStorage implements TokenStorageInterface
 {

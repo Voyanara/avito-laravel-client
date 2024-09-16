@@ -7,7 +7,7 @@ use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\Http\MessengerHttpRepository;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
 
-class GetMessagesListFromChatAction
+readonly class GetMessagesListFromChatAction
 {
     public function __construct(
         protected MessengerHttpRepository $repository

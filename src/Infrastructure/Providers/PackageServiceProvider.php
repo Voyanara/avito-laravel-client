@@ -5,25 +5,25 @@ namespace Voyanara\LaravelApiClient\Infrastructure\Providers;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
+use Override;
+use ReflectionClass;
+use ReflectionException;
 use Voyanara\LaravelApiClient\Domain\Enums\TokenStorageTypeEnum;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
 use Voyanara\LaravelApiClient\Infrastructure\Persistence\Storage\DatabaseStorage;
 use Voyanara\LaravelApiClient\Infrastructure\Persistence\Storage\FileStorage;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\BaseHttpRepository;
-use Override;
-use ReflectionClass;
-use ReflectionException;
 
 abstract class PackageServiceProvider extends ServiceProvider
 {
     public function boot(): void
     {
         $this->publishes([
-            __DIR__ . '/../../../config/avito.php' => config_path('avito.php'),
+            __DIR__.'/../../../config/avito.php' => config_path('avito.php'),
         ]);
 
         $this->mergeConfigFrom(
-            __DIR__ . '/../../../config/avito.php', 'avito'
+            __DIR__.'/../../../config/avito.php', 'avito'
         );
 
         $this->publishesMigrations([
