@@ -10,7 +10,7 @@ class AvitoModuleServiceProvider extends PackageServiceProvider
     public function boot(): void
     {
         $this->publishes([
-            __DIR__ . '/../../../config/avito.php' => config_path('avito.php'),
+            __DIR__.'/../../../config/avito.php' => config_path('avito.php'),
         ], 'config');
 
         $this->publishesMigrations([

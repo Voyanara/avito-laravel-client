@@ -3,9 +3,9 @@
 namespace Voyanara\LaravelApiClient\Presentation\Responses\Messenger;
 
 use Illuminate\Support\Collection;
-use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerMessageItemDTO;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
+use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerMessageItemDTO;
 
 class MessagesListResponse extends Data
 {

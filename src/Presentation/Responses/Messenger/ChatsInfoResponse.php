@@ -3,9 +3,9 @@
 namespace Voyanara\LaravelApiClient\Presentation\Responses\Messenger;
 
 use Illuminate\Support\Collection;
-use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Spatie\LaravelData\Attributes\DataCollectionOf;
 use Spatie\LaravelData\Data;
+use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 
 class ChatsInfoResponse extends Data
 {

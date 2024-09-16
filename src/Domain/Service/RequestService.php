@@ -14,7 +14,7 @@ class RequestService
      * @throws ClientResponseException
      * @throws TokenValidException
      */
-    public function sendRequest(string $url, string $method = 'GET', array $data = [], bool $isTokenRequired = true, ?string $token = null): array
+    public function sendRequest(string $url, string $method = 'GET', array $data = [], bool $isTokenRequired = true, ?string $token = null, bool $asJson = false): array
     {
         Log::info('Info request '.$url);
         $headers = [
@@ -28,10 +28,14 @@ class RequestService
         /**
          * @var Response $response
          */
-        $response = Http::asForm()->withHeaders($headers)->{$method}($url, $data);
+        if ($method === 'POST' && $asJson) {
+            $response = Http::withHeaders($headers)->{$method}($url, $data);
+        } else {
+            $response = Http::asForm()->withHeaders($headers)->{$method}($url, $data);
+        }
 
         if ($response->json('error')) {
-            throw new ClientResponseException($response->json('error_description'));
+            throw new ClientResponseException($response->body());
         }
 
         if (($response->status() === 401 || $response->status() === 403) && $isTokenRequired) {
