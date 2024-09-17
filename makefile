@@ -2,6 +2,8 @@
 pint:
 	./vendor/bin/pint
 
-rector:
+rectord:
 	./vendor/bin/rector process --dry-run
+
+rector:
 	./vendor/bin/rector process
