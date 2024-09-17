@@ -57,7 +57,32 @@ This is the default content of the config file that will be published as config/
 
 ### Usage
 
-To use the Avito API client, you need to create an instance of the Avito class and pass the necessary parameters to the constructor. The Avito class provides methods for working with the Avito API.
+You have some options to use the Avito API client in your Laravel application:
+#### Using the Facade
 
 ```php
-use   AvitoClient
+public function action(AvitoClient $client)
+{
+    $client::messenger()->getChats();
+    //or
+    AvitoClient::user()->self();
+}
+```
+If laravel dosent recognize the facade with helper and alieases in composer.json add:
+```php
+use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade as AvitoClient;
+```
+
+#### Using dependency injection
+
+```php
+use Voyanara\LaravelApiClient\Application\Facades\Client;
+
+public function action(Client $client)
+{
+    $client->messenger()->getChats();
+    //or
+    $client->user()->getBalance();
+    $client->user()->getOperationsHistory();
+}
+```
