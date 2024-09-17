@@ -2,7 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Application\Facades;
 
-readonly class AvitoClient
+readonly class Client
 {
     public function __construct(
         protected UserInfo $userInfo,
