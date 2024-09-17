@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories\Http;
 
+use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\BaseHttpRepository;
@@ -42,5 +43,18 @@ class MessengerHttpRepository extends BaseHttpRepository
         $url = $this->apiUrl.'/messenger/v3/accounts/'.$userId.'/chats/'.$chatId.'/messages';
 
         return MessagesListResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function getChatInfo(int $userId, string $chatId): MessengerChatItemDTO
+    {
+        $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/chats/'.$chatId;
+
+        $response = $this->requestService->sendRequest($url, token: $this->token);
+
+        return MessengerChatItemDTO::from($response);
     }
 }
