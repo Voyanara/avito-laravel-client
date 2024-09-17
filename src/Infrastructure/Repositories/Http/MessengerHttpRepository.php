@@ -15,6 +15,7 @@ class MessengerHttpRepository extends BaseHttpRepository
      * @throws ClientResponseException
      * @throws TokenValidException
      */
+    // REVIEW: надо оставить phpdoc что это значит. Иначе твой опыт будут проходить другие разработчики
     public function getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0): ChatsInfoResponse
     {
         $data = array_filter([
@@ -27,6 +28,7 @@ class MessengerHttpRepository extends BaseHttpRepository
 
         $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/chats';
 
+        // REVIEW: Исключить отсюда ДТО, т.к. вызов апп идет из инфраструктуры
         return ChatsInfoResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
     }
 

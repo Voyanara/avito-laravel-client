@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 
+// REVIEW: Предлагаю перенести в Infrastructure/Service
 class RequestService
 {
     /**
