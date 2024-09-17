@@ -10,6 +10,7 @@ class GetSetTokenActionTest extends TestCase
 {
     public function testSet(): void
     {
+
         $action = $this->app->make(GetSetTokenAction::class);
         $client = 'client';
         $secret = 'secret';

@@ -24,4 +24,68 @@ With this client, you can:
 
 Specific methods for each category (e.g., Avito Real Estate or Avito Jobs) are available in the [Avito API documentation](https://developers.avito.ru/).
 
+## Requirements
+
+- **PHP**: ^8.3
+- **Laravel Framework**: ^11.0
+- **Spatie Laravel Data**: ^4.9
+
+Ensure that your environment meets these requirements before proceeding with the installation.
+
 ## Installation
+
+Laravel Avito API Client can be installed via Composer:
+
+```bash
+composer require voyanara/avito-laravel-client
+```
+
+The package will automatically register a service provider.
+
+This package comes with a migration and a configuration file. You can publish them using the following Artisan command:
+
+
+```bash
+php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider --tag="config"
+```
+
+```bash
+php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider --tag="migrations"
+```
+
+This is the default content of the config file that will be published as config/avito.php
+
+### Usage
+
+You have several options for using the Avito API client in your Laravel application:
+#### Using the Facade
+
+To use the Avito API client via a facade, you can call methods directly on the AvitoClient facade.
+
+Example:
+```php
+public function action(AvitoClient $client)
+{
+    $client::messenger()->getChats();
+    //or
+    AvitoClient::user()->self();
+}
+```
+If Laravel does not recognize the facade and you have defined it in composer.json under extra > laravel > aliases, make sure to import it in your file:
+```php
+use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade as AvitoClient;
+```
+
+#### Using dependency injection
+Alternatively, you can use dependency injection to access the Avito API client. This approach is recommended if you prefer to inject dependencies into your methods or constructors.
+```php
+use Voyanara\LaravelApiClient\Application\Facades\Client;
+
+public function action(Client $client)
+{
+    $client->messenger()->getChats();
+    //or
+    $client->user()->getBalance();
+    $client->user()->getOperationsHistory();
+}
+```
