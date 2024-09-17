@@ -3,19 +3,25 @@
 namespace Voyanara\LaravelApiClient\Application\Services\Facades;
 
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatsAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetMessagesListFromChatAction;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
 
 readonly class Messenger
 {
     public function __construct(
-        protected GetChatsAction $getChatsAction
+        protected GetChatsAction $getChatsAction,
+        protected GetMessagesListFromChatAction $getMessagesListFromChatAction
     ) {}
 
     /**
      * @throws ClientResponseException
      * @throws TokenValidException
+     *                             Получение информации по чатам
+     *                             Возвращает список чатов
+     *                             https://developers.avito.ru/api-catalog/messenger/documentation#operation/getChatsV2
      */
     public function getChats(
         int $userId,
@@ -33,5 +39,17 @@ readonly class Messenger
             $chatTypes,
             $offset
         );
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *                             Получение списка сообщений V3
+     *                             Получение списка сообщений. Не помечает чат прочитанным.
+     *                             https://developers.avito.ru/api-catalog/messenger/documentation#operation/getMessagesV3
+     */
+    public function messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0): MessagesListResponse
+    {
+        return $this->getMessagesListFromChatAction->handle($userId, $chatId, $limit, $offset);
     }
 }
