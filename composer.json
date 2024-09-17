@@ -2,7 +2,6 @@
     "name": "voyanara/avito-laravel-client",
     "description": "A Laravel package for integrating with the Avito API, allowing seamless interaction with Avito features and data from your Laravel application.",
     "type": "library",
-    "version": "1.0.6",
     "keywords": ["laravel","avito","api", "client", "HTTP client", "php"
     ],
     "require": {
