@@ -57,9 +57,12 @@ This is the default content of the config file that will be published as config/
 
 ### Usage
 
-You have some options to use the Avito API client in your Laravel application:
+You have several options for using the Avito API client in your Laravel application:
 #### Using the Facade
 
+To use the Avito API client via a facade, you can call methods directly on the AvitoClient facade.
+
+Example:
 ```php
 public function action(AvitoClient $client)
 {
@@ -68,13 +71,13 @@ public function action(AvitoClient $client)
     AvitoClient::user()->self();
 }
 ```
-If laravel dosent recognize the facade with helper and alieases in composer.json add:
+If Laravel does not recognize the facade and you have defined it in composer.json under extra > laravel > aliases, make sure to import it in your file:
 ```php
 use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade as AvitoClient;
 ```
 
 #### Using dependency injection
-
+Alternatively, you can use dependency injection to access the Avito API client. This approach is recommended if you prefer to inject dependencies into your methods or constructors.
 ```php
 use Voyanara\LaravelApiClient\Application\Facades\Client;
 
