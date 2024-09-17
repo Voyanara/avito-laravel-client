@@ -2,16 +2,14 @@
 
 namespace Voyanara\LaravelApiClient\Application\Facades;
 
+use Override;
 use Illuminate\Support\Facades\Facade;
 
 class AvitoClientFacade extends Facade
 {
-    /**
-     * @return string
-     */
+    #[Override]
     protected static function getFacadeAccessor(): string
     {
         return Client::class;
     }
-
 }
