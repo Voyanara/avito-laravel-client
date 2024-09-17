@@ -1,6 +1,6 @@
 <?php
 
-namespace Voyanara\LaravelApiClient\Domain\Service;
+namespace Voyanara\LaravelApiClient\Infrastructure\Service;
 
 use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
@@ -8,7 +8,6 @@ use Illuminate\Support\Facades\Log;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 
-// REVIEW: Предлагаю перенести в Infrastructure/Service
 class RequestService
 {
     /**

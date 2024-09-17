@@ -1,10 +1,9 @@
 <?php
 
-namespace Voyanara\LaravelApiClient\Application\Services\Facades;
+namespace Voyanara\LaravelApiClient\Application\Facades;
 
-readonly class AvitoClient
+readonly class Client
 {
-    // REVIEW: Убрать из фасадов на уровень выше. Аналогично и другие файлы этой папки
     public function __construct(
         protected UserInfo $userInfo,
         protected Messenger $messenger,

@@ -3,6 +3,8 @@
 namespace Voyanara\LaravelApiClient\Tests\Application\Actions;
 
 use Voyanara\LaravelApiClient\Application\Actions\GetSetTokenAction;
+use Voyanara\LaravelApiClient\Application\Facades\Client;
+use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade;
 use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 use Voyanara\LaravelApiClient\Tests\TestCase;
 
@@ -10,6 +12,8 @@ class GetSetTokenActionTest extends TestCase
 {
     public function testSet(): void
     {
+        $client = AvitoClientFacade::messenger();
+        dd($client);
         $action = $this->app->make(GetSetTokenAction::class);
         $client = 'client';
         $secret = 'secret';

@@ -7,7 +7,7 @@ use Voyanara\LaravelApiClient\Domain\Exceptions\ClientCredentialsException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
-use Voyanara\LaravelApiClient\Domain\Service\RequestService;
+use Voyanara\LaravelApiClient\Infrastructure\Service\RequestService;
 use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 
 abstract class BaseHttpRepository
