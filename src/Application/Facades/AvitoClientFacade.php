@@ -11,7 +11,7 @@ class AvitoClientFacade extends Facade
      */
     protected static function getFacadeAccessor(): string
     {
-        return Client::class;
+        return AvitoClient::class;
     }
 
 }
