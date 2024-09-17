@@ -60,6 +60,7 @@ readonly class Messenger
      * @return MessengerChatItemDTO
      *                              Получение информации по чату
      *                              Возвращает данные чата и последнее сообщение в нем
+     * https://developers.avito.ru/api-catalog/messenger/documentation#operation/getChatByIdV2
      */
     public function chatInfo(int $userId, string $chatId): MessengerChatItemDTO
     {
