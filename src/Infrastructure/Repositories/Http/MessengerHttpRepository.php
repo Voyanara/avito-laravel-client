@@ -8,6 +8,7 @@ use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\BaseHttpRepository;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\SendMessageResponse;
 
 class MessengerHttpRepository extends BaseHttpRepository
 {
@@ -56,5 +57,25 @@ class MessengerHttpRepository extends BaseHttpRepository
         $response = $this->requestService->sendRequest($url, token: $this->token);
 
         return MessengerChatItemDTO::from($response);
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function sendMessage(int $userId, string $chatId, string $message, string $type = 'text'): SendMessageResponse
+    {
+        $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/chats/'.$chatId.'/messages';
+
+        $data = [
+            'message' => [
+                'text' => $message,
+            ],
+            'type' => $type,
+        ];
+
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+
+        return SendMessageResponse::from($response);
     }
 }

@@ -2,8 +2,8 @@
 
 namespace Voyanara\LaravelApiClient\Application\Facades;
 
-use Override;
 use Illuminate\Support\Facades\Facade;
+use Override;
 
 class AvitoClientFacade extends Facade
 {
