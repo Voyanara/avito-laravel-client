@@ -5,17 +5,20 @@ namespace Voyanara\LaravelApiClient\Application\Facades;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatInfoAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatsAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetMessagesListFromChatAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageAction;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\SendMessageResponse;
 
 readonly class Messenger
 {
     public function __construct(
         protected GetChatsAction $getChatsAction,
         protected GetChatInfoAction $chatInfoAction,
+        protected SendMessageAction $sendMessageAction,
         protected GetMessagesListFromChatAction $getMessagesListFromChatAction
     ) {}
 
@@ -108,5 +111,34 @@ readonly class Messenger
     public function chatInfo(int $userId, string $chatId): MessengerChatItemDTO
     {
         return $this->chatInfoAction->handle($userId, $chatId);
+    }
+
+    /**
+     * Отправка сообщения
+     *
+     * На данный момент можно отправить только текстовое сообщение.
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * - chat_id: Обязательный параметр. Строка.
+     *   Идентификатор чата (клиента).
+     *
+     * Параметры заголовка:
+     *
+     * - Authorization: Обязательный параметр. Строка.
+     *   Пример: Bearer ACCESS_TOKEN.
+     *   Токен для авторизации.
+     *
+     * Authorizations:
+     * - (messenger:write) AuthorizationCodeClientCredentials
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postSendMessage
+     */
+    public function sendMessage(int $userId, string $chatId, string $message, string $type = 'text'): SendMessageResponse
+    {
+        return $this->sendMessageAction->handle($userId, $chatId, $message, $type);
     }
 }
