@@ -2,7 +2,7 @@
   <img width="70%" src="https://github.com/user-attachments/assets/b794813c-0dd0-4569-9b42-322980ea0968">
 </p>
 
-## Avito Laravel API Client
+## Avito Laravel API PHP Client
 > This package is a client for the Avito API designed to simplify integration with the Avito platform from your Laravel applications. It provides a set of tools to work with the Avito API, allowing you to automate and streamline tasks related to managing listings, updating information, and obtaining statistics.
 
 ## Why Use the API
