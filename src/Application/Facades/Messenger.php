@@ -5,6 +5,7 @@ namespace Voyanara\LaravelApiClient\Application\Facades;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatInfoAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatsAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetMessagesListFromChatAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\ReadChatAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageAction;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
@@ -19,6 +20,7 @@ readonly class Messenger
         protected GetChatsAction $getChatsAction,
         protected GetChatInfoAction $chatInfoAction,
         protected SendMessageAction $sendMessageAction,
+        protected ReadChatAction $readChatAction,
         protected GetMessagesListFromChatAction $getMessagesListFromChatAction
     ) {}
 
@@ -140,5 +142,35 @@ readonly class Messenger
     public function sendMessage(int $userId, string $chatId, string $message, string $type = 'text'): SendMessageResponse
     {
         return $this->sendMessageAction->handle($userId, $chatId, $message, $type);
+    }
+
+    /**
+     * Прочитать чат
+     *
+     * После успешного получения списка сообщений необходимо вызвать этот метод для того,
+     * чтобы чат стал прочитанным.
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * - chat_id: Обязательный параметр. Строка.
+     *   Идентификатор чата (клиента).
+     *
+     * Параметры заголовка:
+     *
+     * - Authorization: Обязательный параметр. Строка.
+     *   Пример: Bearer ACCESS_TOKEN.
+     *   Токен для авторизации.
+     *
+     * Authorizations:
+     * - (messenger:read) AuthorizationCodeClientCredentials
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/chatRead
+     */
+    public function readChat(int $userId, string $chatId): bool
+    {
+        return $this->readChatAction->handle($userId, $chatId);
     }
 }

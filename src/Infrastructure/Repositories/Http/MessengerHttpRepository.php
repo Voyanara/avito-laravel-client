@@ -78,4 +78,16 @@ class MessengerHttpRepository extends BaseHttpRepository
 
         return SendMessageResponse::from($response);
     }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function readChat(int $userId, string $chatId): true
+    {
+        $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/chats/'.$chatId.'/read';
+        $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+
+        return true;
+    }
 }
