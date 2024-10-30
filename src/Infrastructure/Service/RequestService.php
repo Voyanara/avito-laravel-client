@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
+use Voyanara\LaravelApiClient\Domain\ValueObjects\RequestAttachVO;
 
 class RequestService
 {
@@ -14,8 +15,15 @@ class RequestService
      * @throws ClientResponseException
      * @throws TokenValidException
      */
-    public function sendRequest(string $url, string $method = 'GET', array $data = [], bool $isTokenRequired = true, ?string $token = null, bool $asJson = false): array
-    {
+    public function sendRequest(string $url,
+        string $method = 'GET',
+        array $data = [],
+        bool $isTokenRequired = true,
+        ?string $token = null,
+        bool $asJson = false,
+        bool $withAttach = false,
+        ?RequestAttachVO $attachData = null,
+    ): array {
         Log::info('Info request '.$url);
         $headers = [
             'accept' => 'application/json',
@@ -30,6 +38,9 @@ class RequestService
          */
         if ($method === 'POST' && $asJson) {
             $response = Http::withHeaders($headers)->{$method}($url, $data);
+        } elseif ($method === 'POST' && $withAttach && $attachData) {
+            $response = Http::attach($attachData->name, $attachData->content, $attachData->filename)
+                ->withHeaders($headers)->{$method}($url, $data);
         } else {
             $response = Http::asForm()->withHeaders($headers)->{$method}($url, $data);
         }

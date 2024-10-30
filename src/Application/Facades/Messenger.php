@@ -7,12 +7,15 @@ use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatsAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetMessagesListFromChatAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\ReadChatAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageWithImageAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\UploadImageAction;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\SendMessageResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\UploadImageResponse;
 
 readonly class Messenger
 {
@@ -21,7 +24,9 @@ readonly class Messenger
         protected GetChatInfoAction $chatInfoAction,
         protected SendMessageAction $sendMessageAction,
         protected ReadChatAction $readChatAction,
-        protected GetMessagesListFromChatAction $getMessagesListFromChatAction
+        protected GetMessagesListFromChatAction $getMessagesListFromChatAction,
+        protected UploadImageAction $uploadImageAction,
+        protected SendMessageWithImageAction $sendMessageWithImageAction
     ) {}
 
     /**
@@ -172,5 +177,90 @@ readonly class Messenger
     public function readChat(int $userId, string $chatId): bool
     {
         return $this->readChatAction->handle($userId, $chatId);
+    }
+
+    /**
+     * Загрузка изображения
+     *
+     * Метод используется для загрузки изображения в формате JPEG, HEIC, GIF, BMP или PNG.
+     * Поддерживает загрузку только одного изображения за запрос. Для загрузки нескольких
+     * изображений требуется отправлять несколько запросов.
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * Параметры заголовка:
+     *
+     * - Authorization: Обязательный параметр. Строка.
+     *   Пример: Bearer ACCESS_TOKEN.
+     *   Токен для авторизации.
+     *
+     * Параметры тела запроса:
+     *
+     * - uploadfile[]: Обязательный параметр. Строка (binary).
+     *   Файл изображения в формате JPEG, HEIC, GIF, BMP или PNG.
+     *
+     * Особенности:
+     * - Максимальный размер файла: 24 МБ.
+     * - Максимальное разрешение: 75 мегапикселей.
+     *
+     * Authorizations:
+     * - (messenger:write) AuthorizationCodeClientCredentials
+     *
+     * @param  int  $userId  Идентификатор пользователя
+     * @param  string  $filePath  Путь к файлу изображения для загрузки
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/uploadImages
+     */
+    public function uploadImage(int $userId, string $filePath): UploadImageResponse
+    {
+        return $this->uploadImageAction->handle($userId, $filePath);
+    }
+
+    /**
+     * Отправка сообщения с изображением
+     *
+     * Метод используется для отправки сообщения с изображением. Для этого необходимо передать
+     * в запросе ID изображения, полученного после его загрузки.
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * - chat_id: Обязательный параметр. Строка.
+     *   Идентификатор чата (клиента).
+     *
+     * Параметры заголовка:
+     *
+     * - Authorization: Обязательный параметр. Строка.
+     *   Пример: Bearer ACCESS_TOKEN.
+     *   Токен для авторизации.
+     *
+     * Параметры тела запроса:
+     *
+     * - image_id: Обязательный параметр. Строка.
+     *   Идентификатор загруженного изображения.
+     *
+     * Authorizations:
+     * - (messenger:write) AuthorizationCodeClientCredentials
+     *
+     * @param  int  $userId  Идентификатор пользователя
+     * @param  string  $chatId  Идентификатор чата
+     * @param  string  $imageId  Идентификатор загруженного изображения
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postSendImageMessage
+     */
+    public function sendMessageWithImage(int $userId, string $chatId, string $imageId): SendMessageResponse
+    {
+        return $this->sendMessageWithImageAction->handle($userId, $chatId, $imageId);
     }
 }
