@@ -39,10 +39,16 @@ abstract class BaseHttpRepository
             throw new ClientCredentialsException('Client id and secret must be set');
         }
 
+        $this->requestService->setTokenCredentials(
+            $this->tokenStorage,
+            $this->clientId,
+            $this->secret,
+            $this->apiUrl
+        );
+
         $this->token = $this->tokenStorage->get($this->clientId, $this->secret);
 
         if (! $this->token) {
-
             $tokenDTO = $this->getToken($this->clientId, $this->secret);
             $this->tokenStorage->set($tokenDTO, $this->clientId, $this->secret);
             $this->token = $tokenDTO->accessToken;
