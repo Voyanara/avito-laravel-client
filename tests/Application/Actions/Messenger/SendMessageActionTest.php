@@ -8,7 +8,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class SendMessageActionTest extends TestCase
 {
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $client = $this->app->make(Client::class);
         $response = $client->messenger()->sendMessage(env('DEMO_SENDER'), env('DEMO_CHAT_ID'), 'Добрый день это ответное авто сообщение');

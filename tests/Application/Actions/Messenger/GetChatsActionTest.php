@@ -18,7 +18,7 @@ class GetChatsActionTest extends TestCase
      * @throws ClientResponseException
      * @throws TokenValidException
      */
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $actionChats = $this->app->make(GetChatsAction::class);
         $actionUserInfo = $this->app->make(GetUserInfoAction::class);

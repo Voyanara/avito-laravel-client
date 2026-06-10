@@ -8,7 +8,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class GetSetTokenActionTest extends TestCase
 {
-    public function testSet(): void
+    public function test_set(): void
     {
 
         $action = $this->app->make(GetSetTokenAction::class);
@@ -26,13 +26,13 @@ class GetSetTokenActionTest extends TestCase
         $this->assertEquals($token, $tokenFromStorage);
     }
 
-    public function testGetFromExternal(): void
+    public function test_get_from_external(): void
     {
         $action = $this->app->make(GetSetTokenAction::class);
         $this->assertInstanceOf(TokenResponse::class, $action->getFromExternal());
     }
 
-    public function testGetFromStorage(): void
+    public function test_get_from_storage(): void
     {
         $action = $this->app->make(GetSetTokenAction::class);
         $client = 'client';

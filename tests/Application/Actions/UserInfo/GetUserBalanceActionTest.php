@@ -9,7 +9,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class GetUserBalanceActionTest extends TestCase
 {
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $balanceAction = $this->app->make(GetUserBalanceAction::class);
         $client = $this->app->make(GetUserInfoAction::class);

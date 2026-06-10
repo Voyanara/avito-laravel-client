@@ -16,7 +16,7 @@ class GetUserInfoActionTest extends TestCase
      * @throws BindingResolutionException
      * @throws TokenValidException
      */
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $client = $this->app->make(GetUserInfoAction::class);
         $this->assertInstanceOf(UserInfoSelfResponse::class, $client->handle());

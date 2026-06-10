@@ -8,7 +8,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class GetUserOperationHistoryActionTest extends TestCase
 {
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $action = $this->app->make(GetUserOperationHistoryAction::class);
 

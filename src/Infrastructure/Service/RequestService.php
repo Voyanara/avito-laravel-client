@@ -7,15 +7,18 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
-use Voyanara\LaravelApiClient\Domain\ValueObjects\RequestAttachVO;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
+use Voyanara\LaravelApiClient\Domain\ValueObjects\RequestAttachVO;
 use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 
 class RequestService
 {
     protected ?TokenStorageInterface $tokenStorage = null;
+
     protected ?string $clientId = null;
+
     protected ?string $clientSecret = null;
+
     protected ?string $apiUrl = null;
 
     /**
@@ -25,7 +28,7 @@ class RequestService
         TokenStorageInterface $tokenStorage,
         string $clientId,
         string $clientSecret,
-        string $apiUrl = null
+        ?string $apiUrl = null
     ): void {
         $this->tokenStorage = $tokenStorage;
         $this->clientId = $clientId;
@@ -51,10 +54,10 @@ class RequestService
         } catch (TokenValidException $e) {
             if ($isTokenRequired && $this->canRefreshToken()) {
                 $newToken = $this->refreshToken();
-                
+
                 return $this->executeRequest($url, $method, $data, $isTokenRequired, $newToken, $asJson, $withAttach, $attachData);
             }
-            
+
             throw $e;
         }
     }
@@ -67,7 +70,6 @@ class RequestService
     /**
      * Обновляет токен и возвращает новое значение
      *
-     * @return string
      * @throws ClientResponseException
      * @throws TokenValidException
      */
@@ -79,18 +81,18 @@ class RequestService
             'client_secret' => $this->clientSecret,
         ];
 
-        $tokenUrl = ($this->apiUrl ?? '') . '/token';
+        $tokenUrl = ($this->apiUrl ?? '').'/token';
         $response = $this->executeRequest($tokenUrl, 'POST', $data, false);
         $tokenResponse = TokenResponse::from($response);
-        
+
         $this->tokenStorage->set($tokenResponse, $this->clientId, $this->clientSecret);
-        
+
         return $tokenResponse->accessToken;
     }
 
     /**
      * Выполняет HTTP запрос
-     * 
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      */

@@ -12,7 +12,9 @@ use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 readonly class FileStorage implements TokenStorageInterface
 {
     private string $filePath;
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->filePath = 'avito_module/'.config('avito.file_name').'.json';
     }
 
@@ -22,12 +24,12 @@ readonly class FileStorage implements TokenStorageInterface
         try {
             $tokens = json_decode(Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR);
             $key = $this->generateKey($clientId, $clientSecret);
+
             return $tokens[$key] ?? null;
-        } catch (FileNotFoundException | JsonException) {
+        } catch (FileNotFoundException|JsonException) {
             return null;
         }
     }
-
 
     /**
      * @throws JsonException
@@ -37,7 +39,7 @@ readonly class FileStorage implements TokenStorageInterface
     {
         try {
             $tokens = json_decode(Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR) ?? [];
-        } catch (FileNotFoundException| JsonException) {
+        } catch (FileNotFoundException|JsonException) {
             $tokens = [];
         }
         $key = $this->generateKey($clientId, $clientSecret);
@@ -47,6 +49,6 @@ readonly class FileStorage implements TokenStorageInterface
 
     private function generateKey(string $clientId, string $clientSecret): string
     {
-        return md5($clientId) . '::' . md5($clientSecret);
+        return md5($clientId).'::'.md5($clientSecret);
     }
 }

@@ -9,7 +9,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class UploadImageActionTest extends TestCase
 {
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $client = $this->app->make(Client::class);
         $filePath = __DIR__.'/Screenshot_1.jpg';

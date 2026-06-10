@@ -26,9 +26,9 @@ Specific methods for each category (e.g., Avito Real Estate or Avito Jobs) are a
 
 ## Requirements
 
-- **PHP**: ^8.3
-- **Laravel Framework**: ^11.0
-- **Spatie Laravel Data**: ^4.9
+- **PHP**: ^8.3 (8.3 / 8.4 / 8.5)
+- **Laravel Framework**: ^11.0 | ^12.0 | ^13.0
+- **Spatie Laravel Data**: ^4.11
 
 Ensure that your environment meets these requirements before proceeding with the installation.
 

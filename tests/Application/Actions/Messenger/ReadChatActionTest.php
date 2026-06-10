@@ -12,7 +12,7 @@ use Voyanara\LaravelApiClient\Tests\TestCase;
 
 class ReadChatActionTest extends TestCase
 {
-    public function testHandle(): void
+    public function test_handle(): void
     {
         $actionChats = $this->app->make(GetChatsAction::class);
         $actionUserInfo = $this->app->make(GetUserInfoAction::class);

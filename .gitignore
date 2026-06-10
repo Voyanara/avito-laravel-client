@@ -6,3 +6,5 @@ composer.lock
 /.env.testing
 /Dockerfile
 /docker-compose.yml
+/.claude/
+/CLAUDE.md
