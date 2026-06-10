@@ -8,6 +8,7 @@ use Illuminate\Support\ServiceProvider;
 use Override;
 use ReflectionClass;
 use ReflectionException;
+use ReflectionNamedType;
 use Voyanara\LaravelApiClient\Domain\Enums\TokenStorageTypeEnum;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
 use Voyanara\LaravelApiClient\Infrastructure\Persistence\Storage\DatabaseStorage;
@@ -67,7 +68,7 @@ abstract class PackageServiceProvider extends ServiceProvider
 
         $dependencies = array_map(function ($parameter) use ($app) {
             $type = $parameter->getType();
-            if ($type && ! $type->isBuiltin()) {
+            if ($type instanceof ReflectionNamedType && ! $type->isBuiltin()) {
                 return $app->make($type->getName());
             }
 

@@ -89,3 +89,64 @@ public function action(Client $client)
     $client->user()->getOperationsHistory();
 }
 ```
+
+## Messenger
+
+Full coverage of the [Avito Messenger API](https://developers.avito.ru/api-catalog/messenger/documentation) — all 13 methods are available via `$client->messenger()`:
+
+| Method | Description | Scope |
+|---|---|---|
+| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | Get a list of chats | `messenger:read` |
+| `chatInfo(int $userId, string $chatId)` | Get chat info with the last message | `messenger:read` |
+| `messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0)` | Get messages from a chat (does not mark it as read) | `messenger:read` |
+| `sendMessage(int $userId, string $chatId, string $message, string $type = 'text')` | Send a text message | `messenger:write` |
+| `uploadImage(int $userId, string $filePath)` | Upload an image (JPEG, HEIC, GIF, BMP, PNG; max 24 MB) | `messenger:write` |
+| `sendMessageWithImage(int $userId, string $chatId, string $imageId)` | Send a message with a previously uploaded image | `messenger:write` |
+| `deleteMessage(int $userId, string $chatId, string $messageId)` | Delete a message (within one hour of sending; its type changes to `deleted`) | `messenger:write` |
+| `readChat(int $userId, string $chatId)` | Mark a chat as read | `messenger:read` |
+| `getVoiceFiles(int $userId, array $voiceIds)` | Get download links for voice messages (links are valid for one hour) | `messenger:read` |
+| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null)` | Add a user to the blacklist (reasons: 1 — spam, 2 — fraud, 3 — insult, 4 — other) | `messenger:write` |
+| `subscribeWebhook(string $url)` | Enable webhook notifications (V3) | `messenger:read` |
+| `unsubscribeWebhook(string $url)` | Disable webhook notifications | `messenger:read` |
+| `getSubscriptions()` | Get the list of webhook subscriptions | `messenger:read` |
+
+### Examples
+
+Reply to the first unread chat and mark it as read:
+
+```php
+use Voyanara\LaravelApiClient\Application\Facades\Client;
+
+public function action(Client $client)
+{
+    $userId = $client->user()->self()->id;
+
+    $chats = $client->messenger()->getChats($userId, unreadOnly: true);
+    $chat = $chats->chats->first();
+
+    $client->messenger()->sendMessage($userId, $chat->id, 'Hello! Thanks for reaching out.');
+    $client->messenger()->readChat($userId, $chat->id);
+}
+```
+
+Send a photo to a chat:
+
+```php
+$upload = $client->messenger()->uploadImage($userId, storage_path('app/photo.jpg'));
+$client->messenger()->sendMessageWithImage($userId, $chatId, $upload->id);
+```
+
+Manage webhook notifications:
+
+```php
+$client->messenger()->subscribeWebhook('https://example.com/avito/webhook');
+
+$subscriptions = $client->messenger()->getSubscriptions();
+foreach ($subscriptions->subscriptions as $subscription) {
+    echo $subscription->url.' (v'.$subscription->version.')'.PHP_EOL;
+}
+
+$client->messenger()->unsubscribeWebhook('https://example.com/avito/webhook');
+```
+
+> **Note:** since November 2025 Avito requires a paid messenger subscription for reading and sending chat messages — without it the API responds with error `402` ("Перейдите на подписку с API мессенджера"). Chat lists, chat info and webhook management remain available without a subscription.

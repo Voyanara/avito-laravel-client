@@ -22,7 +22,7 @@ readonly class FileStorage implements TokenStorageInterface
     public function get(string $clientId, string $clientSecret): ?string
     {
         try {
-            $tokens = json_decode(Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR);
+            $tokens = json_decode((string) Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR);
             $key = $this->generateKey($clientId, $clientSecret);
 
             return $tokens[$key] ?? null;
@@ -38,7 +38,7 @@ readonly class FileStorage implements TokenStorageInterface
     public function set(TokenResponse $tokenResponse, string $clientId, string $clientSecret): void
     {
         try {
-            $tokens = json_decode(Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR) ?? [];
+            $tokens = json_decode((string) Storage::disk('local')->get($this->filePath), true, 512, JSON_THROW_ON_ERROR) ?? [];
         } catch (FileNotFoundException|JsonException) {
             $tokens = [];
         }

@@ -15,7 +15,8 @@
         "pestphp/pest": "^3.0|^4.0",
         "pestphp/pest-plugin-laravel": "^3.0|^4.0",
         "rector/rector": "^1.2|^2.0",
-        "laravel/pint": "^1.17"
+        "laravel/pint": "^1.17",
+        "larastan/larastan": "^3.10"
     },
     "license": "MIT",
     "autoload": {

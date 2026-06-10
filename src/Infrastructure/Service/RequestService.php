@@ -2,7 +2,6 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Service;
 
-use Illuminate\Http\Client\Response;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
@@ -64,7 +63,7 @@ class RequestService
 
     protected function canRefreshToken(): bool
     {
-        return $this->tokenStorage !== null && $this->clientId !== null && $this->clientSecret !== null;
+        return $this->tokenStorage instanceof TokenStorageInterface && $this->clientId !== null && $this->clientSecret !== null;
     }
 
     /**
@@ -114,9 +113,6 @@ class RequestService
             $headers['Authorization'] = 'Bearer '.$token;
         }
 
-        /**
-         * @var Response $response
-         */
         if ($method === 'POST' && $asJson) {
             $response = Http::withHeaders($headers)->{$method}($url, $data);
         } elseif ($method === 'POST' && $withAttach && $attachData) {
@@ -138,6 +134,6 @@ class RequestService
             throw new ClientResponseException($response->body());
         }
 
-        return $response->json();
+        return $response->json() ?? [];
     }
 }

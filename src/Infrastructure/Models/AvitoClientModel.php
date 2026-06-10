@@ -5,6 +5,9 @@ namespace Voyanara\LaravelApiClient\Infrastructure\Models;
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property string $access_token
+ */
 class AvitoClientModel extends Model
 {
     use HasUuids;

@@ -2,12 +2,18 @@
 
 namespace Voyanara\LaravelApiClient\Application\Facades;
 
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\AddUserToBlacklistAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\DeleteMessageAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatInfoAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatsAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetMessagesListFromChatAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetSubscriptionsAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetVoiceFilesAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\ReadChatAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\SendMessageWithImageAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\SubscribeWebhookAction;
+use Voyanara\LaravelApiClient\Application\Actions\Messenger\UnsubscribeWebhookAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\UploadImageAction;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
@@ -16,6 +22,8 @@ use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\SendMessageResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\UploadImageResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\VoiceFilesResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\WebhookSubscriptionsResponse;
 
 readonly class Messenger
 {
@@ -26,7 +34,13 @@ readonly class Messenger
         protected ReadChatAction $readChatAction,
         protected GetMessagesListFromChatAction $getMessagesListFromChatAction,
         protected UploadImageAction $uploadImageAction,
-        protected SendMessageWithImageAction $sendMessageWithImageAction
+        protected SendMessageWithImageAction $sendMessageWithImageAction,
+        protected DeleteMessageAction $deleteMessageAction,
+        protected GetVoiceFilesAction $getVoiceFilesAction,
+        protected AddUserToBlacklistAction $addUserToBlacklistAction,
+        protected SubscribeWebhookAction $subscribeWebhookAction,
+        protected UnsubscribeWebhookAction $unsubscribeWebhookAction,
+        protected GetSubscriptionsAction $getSubscriptionsAction
     ) {}
 
     /**
@@ -262,5 +276,195 @@ readonly class Messenger
     public function sendMessageWithImage(int $userId, string $chatId, string $imageId): SendMessageResponse
     {
         return $this->sendMessageWithImageAction->handle($userId, $chatId, $imageId);
+    }
+
+    /**
+     * Удаление сообщения
+     *
+     * Сообщение не пропадает из истории, а меняет свой тип на deleted.
+     * Удалять сообщения можно не позднее часа с момента их отправки.
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * - chat_id: Обязательный параметр. Строка.
+     *   Идентификатор чата (клиента).
+     *
+     * - message_id: Обязательный параметр. Строка.
+     *   Идентификатор сообщения.
+     *
+     * Параметры заголовка:
+     *
+     * - Authorization: Обязательный параметр. Строка.
+     *   Пример: Bearer ACCESS_TOKEN.
+     *   Токен для авторизации.
+     *
+     * Authorizations:
+     * - (messenger:write) AuthorizationCodeClientCredentials
+     *
+     * @param  int  $userId  Идентификатор пользователя
+     * @param  string  $chatId  Идентификатор чата
+     * @param  string  $messageId  Идентификатор сообщения
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/deleteMessage
+     */
+    public function deleteMessage(int $userId, string $chatId, string $messageId): bool
+    {
+        return $this->deleteMessageAction->handle($userId, $chatId, $messageId);
+    }
+
+    /**
+     * Получение голосовых сообщений
+     *
+     * Метод используется для получения ссылки на файл с голосовым сообщением по идентификатору
+     * voice_id, получаемому из тела сообщения с типом voice.
+     *
+     * Особенности работы с голосовыми сообщениями:
+     *
+     * - Голосовые сообщения Авито используют кодек opus внутри .mp4 контейнера;
+     * - Ссылка на голосовое сообщение доступна в течение одного часа с момента запроса.
+     *   Попытка получить файл по ссылке спустя это время приведёт к ошибке.
+     *   Для восстановления доступа необходимо получить новую ссылку на файл;
+     * - Как и с обычными сообщениями, получение ссылки на файл доступно только для
+     *   пользователей, находящихся в беседе, где голосовое сообщение было отправлено.
+     *
+     * Параметры запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * - voice_ids: Обязательный параметр. Массив строк (query).
+     *   Получение файлов голосовых сообщений с указанными voice_id.
+     *
+     * Authorizations:
+     * - (messenger:read) AuthorizationCodeClientCredentials
+     *
+     * @param  int  $userId  Идентификатор пользователя
+     * @param  string[]  $voiceIds  Идентификаторы голосовых сообщений
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/getVoiceFiles
+     */
+    public function getVoiceFiles(int $userId, array $voiceIds): VoiceFilesResponse
+    {
+        return $this->getVoiceFilesAction->handle($userId, $voiceIds);
+    }
+
+    /**
+     * Добавление пользователя в blacklist
+     *
+     * Параметры пути запроса:
+     *
+     * - user_id: Обязательный параметр. Целое число (int64).
+     *   Идентификатор пользователя (клиента).
+     *
+     * Параметры тела запроса:
+     *
+     * - users: Массив объектов с информацией о блокируемых пользователях:
+     *   - user_id: Целое число (int64). Идентификатор пользователя, которого хотим заблокировать.
+     *   - context.item_id: Целое число (int64). Идентификатор объявления.
+     *   - context.reason_id: Целое число. Причина, по которой блокируем пользователя:
+     *     1 — спам, 2 — мошенничество, 3 — оскорбления и хамство, 4 — другая причина.
+     *
+     * Authorizations:
+     * - (messenger:write) AuthorizationCodeClientCredentials
+     *
+     * @param  int  $userId  Идентификатор пользователя (владельца аккаунта)
+     * @param  int  $blockedUserId  Идентификатор пользователя, которого блокируем
+     * @param  int|null  $itemId  Идентификатор объявления, в контексте которого блокируем
+     * @param  int|null  $reasonId  Причина блокировки: 1 — спам, 2 — мошенничество, 3 — оскорбления и хамство, 4 — другая причина
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postBlacklistV2
+     */
+    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null): bool
+    {
+        return $this->addUserToBlacklistAction->handle($userId, $blockedUserId, $itemId, $reasonId);
+    }
+
+    /**
+     * Включение уведомлений V3 (webhooks)
+     *
+     * Включение webhook-уведомлений.
+     *
+     * После регистрации url'а для получения веб-хуков убедитесь, что он доступен,
+     * работает и возвращает статус 200 OK, соблюдая timeout 2s, например, выполнив запрос:
+     *
+     *   curl --connect-timeout 2 <url-вашего-вебхука> -i -d '{}'
+     *
+     * Параметры тела запроса:
+     *
+     * - url: Обязательный параметр. Строка.
+     *   Url, на который будут отправляться нотификации.
+     *
+     * Authorizations:
+     * - (messenger:read) AuthorizationCodeClientCredentials
+     *
+     * @param  string  $url  Url, на который будут отправляться уведомления
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postWebhookV3
+     */
+    public function subscribeWebhook(string $url): bool
+    {
+        return $this->subscribeWebhookAction->handle($url);
+    }
+
+    /**
+     * Отключение уведомлений (webhooks)
+     *
+     * Параметры тела запроса:
+     *
+     * - url: Обязательный параметр. Строка.
+     *   Url, на который необходимо перестать слать уведомления.
+     *
+     * Authorizations:
+     * - (messenger:read) AuthorizationCodeClientCredentials
+     *
+     * @param  string  $url  Url, на который необходимо перестать слать уведомления
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postWebhookUnsubscribe
+     */
+    public function unsubscribeWebhook(string $url): bool
+    {
+        return $this->unsubscribeWebhookAction->handle($url);
+    }
+
+    /**
+     * Получение подписок (webhooks)
+     *
+     * Получение списка подписок.
+     *
+     * Поля элемента подписки:
+     *
+     * - url: Строка. Url, на который отправляются уведомления.
+     * - version: Строка. Версия метода, через который вебхук добавлен.
+     *   Влияет на формат получаемых данных.
+     *
+     * Authorizations:
+     * - (messenger:read) AuthorizationCodeClientCredentials
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     *
+     * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/getSubscriptions
+     */
+    public function getSubscriptions(): WebhookSubscriptionsResponse
+    {
+        return $this->getSubscriptionsAction->handle();
     }
 }

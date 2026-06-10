@@ -7,3 +7,6 @@ rectord:
 
 rector:
 	./vendor/bin/rector process
+
+phpstan:
+	docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=1G

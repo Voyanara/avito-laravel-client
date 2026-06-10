@@ -11,6 +11,8 @@ use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\MessagesListResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\SendMessageResponse;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\UploadImageResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\VoiceFilesResponse;
+use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\WebhookSubscriptionsResponse;
 
 class MessengerHttpRepository extends BaseHttpRepository
 {
@@ -126,5 +128,108 @@ class MessengerHttpRepository extends BaseHttpRepository
         $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
 
         return SendMessageResponse::from($response);
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function deleteMessage(int $userId, string $chatId, string $messageId): true
+    {
+        $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/chats/'.$chatId.'/messages/'.$messageId;
+        $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+
+        return true;
+    }
+
+    /**
+     * @param  string[]  $voiceIds
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function getVoiceFiles(int $userId, array $voiceIds): VoiceFilesResponse
+    {
+        $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/getVoiceFiles';
+
+        $data = [
+            'voice_ids' => implode(',', $voiceIds),
+        ];
+
+        return VoiceFilesResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null): true
+    {
+        $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/blacklist';
+
+        $context = array_filter([
+            'item_id' => $itemId,
+            'reason_id' => $reasonId,
+        ]);
+
+        $data = [
+            'users' => [
+                array_filter([
+                    'user_id' => $blockedUserId,
+                    'context' => $context !== [] ? $context : null,
+                ]),
+            ],
+        ];
+
+        $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+
+        return true;
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function subscribeWebhook(string $url): bool
+    {
+        $response = $this->requestService->sendRequest(
+            $this->apiUrl.'/messenger/v3/webhook',
+            method: 'POST',
+            data: ['url' => $url],
+            token: $this->token,
+            asJson: true
+        );
+
+        return (bool) ($response['ok'] ?? false);
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function unsubscribeWebhook(string $url): bool
+    {
+        $response = $this->requestService->sendRequest(
+            $this->apiUrl.'/messenger/v1/webhook/unsubscribe',
+            method: 'POST',
+            data: ['url' => $url],
+            token: $this->token,
+            asJson: true
+        );
+
+        return (bool) ($response['ok'] ?? false);
+    }
+
+    /**
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function getSubscriptions(): WebhookSubscriptionsResponse
+    {
+        $url = $this->apiUrl.'/messenger/v1/subscriptions';
+
+        $response = $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+
+        return WebhookSubscriptionsResponse::from($response);
     }
 }
