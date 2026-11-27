@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Application\Actions\Messenger;
 
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\ChatTypeEnum;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Infrastructure\Repositories\Http\MessengerHttpRepository;
@@ -14,6 +15,9 @@ readonly class GetChatsAction
     ) {}
 
     /**
+     * @param  array<int>  $itemIds
+     * @param  array<ChatTypeEnum|string>  $chatTypes
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      */

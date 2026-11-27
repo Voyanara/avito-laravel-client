@@ -10,6 +10,12 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+- `ChatTypeEnum` (`u2i`, `u2u`, `a2u`) for the `chatTypes` filter of `getChats()` and `BlacklistReasonEnum` (1–4) for the `reasonId` of `addUserToBlacklist()`. Plain strings and integers are still accepted
+
+### Fixed
+- `getChats()` docs: added the `a2u` chat type (chats between users and Avito) listed in the Avito documentation
+
 ## [1.4.0] - 2026-11-28
 
 ### Added

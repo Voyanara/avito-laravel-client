@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories;
 
+use BackedEnum;
 use Voyanara\LaravelApiClient\Domain\Enums\GrantTypesEnum;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientCredentialsException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
@@ -63,5 +64,25 @@ abstract class BaseHttpRepository
         $response = $this->requestService->sendRequest($this->apiUrl.'/token', 'POST', $data, false);
 
         return TokenResponse::from($response);
+    }
+
+    /**
+     * Converts an enum case to its value and keeps scalars as is,
+     * so methods can accept both enums and raw API values.
+     */
+    protected static function value(BackedEnum|string|int|null $value): string|int|null
+    {
+        return $value instanceof BackedEnum ? $value->value : $value;
+    }
+
+    /**
+     * Same as {@see self::value()} for a list of values.
+     *
+     * @param  array<BackedEnum|string|int>  $values
+     * @return list<string|int>
+     */
+    protected static function values(array $values): array
+    {
+        return array_values(array_map(static::value(...), $values));
     }
 }

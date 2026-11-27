@@ -2,7 +2,6 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories\Http;
 
-use BackedEnum;
 use DateTimeInterface;
 use Voyanara\LaravelApiClient\Domain\Enums\Items\AnalyticsGroupingEnum;
 use Voyanara\LaravelApiClient\Domain\Enums\Items\ItemStatsFieldEnum;
@@ -290,20 +289,6 @@ class ItemsHttpRepository extends BaseHttpRepository
     private static function date(DateTimeInterface|string $date): string
     {
         return $date instanceof DateTimeInterface ? $date->format('Y-m-d') : $date;
-    }
-
-    /**
-     * Converts enum cases to their values and keeps strings as is.
-     *
-     * @param  array<BackedEnum|string|int>  $values
-     * @return list<string|int>
-     */
-    private static function values(array $values): array
-    {
-        return array_values(array_map(
-            static fn (BackedEnum|string|int $value): string|int => $value instanceof BackedEnum ? $value->value : $value,
-            $values,
-        ));
     }
 
     /**

@@ -165,7 +165,7 @@ Full coverage of the [Avito Messenger API](https://www.avito.ru/developers/api-c
 
 | Method | Description | Scope |
 |---|---|---|
-| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | List chats; `chatTypes`: `u2i` (about listings), `u2u` (between users) | `messenger:read` |
+| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | List chats; `chatTypes` (`ChatTypeEnum` or string): `u2i` (about listings), `u2u` (between users), `a2u` (between users and Avito) | `messenger:read` |
 | `chatInfo(int $userId, string $chatId)` | Chat info with the last message | `messenger:read` |
 | `messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0)` | Messages in a chat (does not mark it as read) | `messenger:read` |
 | `sendMessage(int $userId, string $chatId, string $message, string $type = 'text')` | Send a text message | `messenger:write` |
@@ -174,7 +174,7 @@ Full coverage of the [Avito Messenger API](https://www.avito.ru/developers/api-c
 | `deleteMessage(int $userId, string $chatId, string $messageId)` | Delete a message (within one hour of sending) | `messenger:write` |
 | `readChat(int $userId, string $chatId)` | Mark a chat as read | `messenger:read` |
 | `getVoiceFiles(int $userId, array $voiceIds)` | Download links for voice messages (valid for one hour) | `messenger:read` |
-| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null)` | Block a user (reason: `1` spam, `2` fraud, `3` insult, `4` other) | `messenger:write` |
+| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, BlacklistReasonEnum\|int\|null $reasonId = null)` | Block a user (`BlacklistReasonEnum` or int: `1` spam, `2` fraud, `3` insult, `4` other) | `messenger:write` |
 | `subscribeWebhook(string $url)` | Subscribe to webhook notifications (v3) | `messenger:read` |
 | `unsubscribeWebhook(string $url)` | Unsubscribe from webhook notifications | `messenger:read` |
 | `getSubscriptions()` | List webhook subscriptions | `messenger:read` |

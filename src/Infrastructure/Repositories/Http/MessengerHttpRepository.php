@@ -3,6 +3,8 @@
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories\Http;
 
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\BlacklistReasonEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\ChatTypeEnum;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Domain\ValueObjects\RequestAttachVO;
@@ -17,6 +19,9 @@ use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\WebhookSubscripti
 class MessengerHttpRepository extends BaseHttpRepository
 {
     /**
+     * @param  array<int>  $itemIds
+     * @param  array<ChatTypeEnum|string>  $chatTypes
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      */
@@ -26,7 +31,7 @@ class MessengerHttpRepository extends BaseHttpRepository
             'limit' => $limit,
             'unread_only' => $unreadOnly !== null ? ($unreadOnly ? 'true' : 'false') : null,
             'item_ids' => $itemIds !== [] ? implode(',', $itemIds) : null,
-            'chat_types' => $chatTypes !== [] ? implode(',', $chatTypes) : null,
+            'chat_types' => $chatTypes !== [] ? implode(',', self::values($chatTypes)) : null,
             'offset' => $offset > 0 ? $offset : null,
         ]);
 
@@ -163,13 +168,13 @@ class MessengerHttpRepository extends BaseHttpRepository
      * @throws ClientResponseException
      * @throws TokenValidException
      */
-    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null): true
+    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, BlacklistReasonEnum|int|null $reasonId = null): true
     {
         $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/blacklist';
 
         $context = array_filter([
             'item_id' => $itemId,
-            'reason_id' => $reasonId,
+            'reason_id' => self::value($reasonId),
         ]);
 
         $data = [

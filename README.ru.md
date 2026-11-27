@@ -165,7 +165,7 @@ echo "Основной: {$balance->real} ₽, бонусный: {$balance->bonus
 
 | Метод | Описание | Scope |
 |---|---|---|
-| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | Список чатов; `chatTypes`: `u2i` (по объявлениям), `u2u` (между пользователями) | `messenger:read` |
+| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | Список чатов; `chatTypes` (`ChatTypeEnum` или строка): `u2i` (по объявлениям), `u2u` (между пользователями), `a2u` (между пользователями и Авито) | `messenger:read` |
 | `chatInfo(int $userId, string $chatId)` | Информация о чате и последнее сообщение | `messenger:read` |
 | `messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0)` | Сообщения чата (не помечает чат прочитанным) | `messenger:read` |
 | `sendMessage(int $userId, string $chatId, string $message, string $type = 'text')` | Отправить текстовое сообщение | `messenger:write` |
@@ -174,7 +174,7 @@ echo "Основной: {$balance->real} ₽, бонусный: {$balance->bonus
 | `deleteMessage(int $userId, string $chatId, string $messageId)` | Удалить сообщение (в течение часа после отправки) | `messenger:write` |
 | `readChat(int $userId, string $chatId)` | Пометить чат прочитанным | `messenger:read` |
 | `getVoiceFiles(int $userId, array $voiceIds)` | Ссылки на голосовые сообщения (действуют один час) | `messenger:read` |
-| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null)` | Заблокировать пользователя (причина: `1` спам, `2` мошенничество, `3` оскорбления, `4` другое) | `messenger:write` |
+| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, BlacklistReasonEnum\|int\|null $reasonId = null)` | Заблокировать пользователя (`BlacklistReasonEnum` или число: `1` спам, `2` мошенничество, `3` оскорбления, `4` другое) | `messenger:write` |
 | `subscribeWebhook(string $url)` | Подписаться на вебхуки (v3) | `messenger:read` |
 | `unsubscribeWebhook(string $url)` | Отписаться от вебхуков | `messenger:read` |
 | `getSubscriptions()` | Список подписок на вебхуки | `messenger:read` |

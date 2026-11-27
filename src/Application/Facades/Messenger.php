@@ -16,6 +16,8 @@ use Voyanara\LaravelApiClient\Application\Actions\Messenger\SubscribeWebhookActi
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\UnsubscribeWebhookAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\UploadImageAction;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\BlacklistReasonEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\ChatTypeEnum;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
 use Voyanara\LaravelApiClient\Presentation\Responses\Messenger\ChatsInfoResponse;
@@ -57,15 +59,23 @@ readonly class Messenger
      *    Если установлено в `true`, возвращаются только непрочитанные чаты.
      *
      *  - chat_types: Массив строк. По умолчанию: "u2i". Пример: `chat_types=u2i,u2u`.
-     *    Позволяет фильтровать чаты по типу:
-     *      - "u2i": чаты, связанные с объявлениями;
-     *      - "u2u": чаты между пользователями.
+     *    Позволяет фильтровать чаты по типу, см. {@see ChatTypeEnum}:
+     *      - "u2i": чаты по объявлениям;
+     *      - "u2u": чаты между пользователями;
+     *      - "a2u": чаты между пользователями и Авито.
      *
      *  - limit: Целое число (int32) от 1 до 100. По умолчанию: `100`. Пример: `limit=50`.
      *    Ограничение на количество запрашиваемых чатов.
      *
-     *  - offset: Целое число (int32). По умолчанию: `0`. Пример: `offset=50`.
+     *  - offset: Целое число (int32) от 0 до 1000. По умолчанию: `0`. Пример: `offset=50`.
      *    Смещение для запроса списка чатов.
+     *
+     * @param  int  $userId  Идентификатор пользователя
+     * @param  int  $limit  Количество чатов (от 1 до 100)
+     * @param  bool|null  $unreadOnly  Только непрочитанные чаты; null — значение по умолчанию на стороне Авито (false)
+     * @param  list<int>  $itemIds  Только чаты по указанным объявлениям
+     * @param  list<ChatTypeEnum|string>  $chatTypes  Типы чатов; пустой список — значение по умолчанию на стороне Авито (u2i)
+     * @param  int  $offset  Смещение (от 0 до 1000)
      *
      * @throws ClientResponseException
      * @throws TokenValidException
@@ -370,7 +380,7 @@ readonly class Messenger
      * - users: Массив объектов с информацией о блокируемых пользователях:
      *   - user_id: Целое число (int64). Идентификатор пользователя, которого хотим заблокировать.
      *   - context.item_id: Целое число (int64). Идентификатор объявления.
-     *   - context.reason_id: Целое число. Причина, по которой блокируем пользователя:
+     *   - context.reason_id: Целое число. Причина, по которой блокируем пользователя, см. {@see BlacklistReasonEnum}:
      *     1 — спам, 2 — мошенничество, 3 — оскорбления и хамство, 4 — другая причина.
      *
      * Authorizations:
@@ -379,14 +389,14 @@ readonly class Messenger
      * @param  int  $userId  Идентификатор пользователя (владельца аккаунта)
      * @param  int  $blockedUserId  Идентификатор пользователя, которого блокируем
      * @param  int|null  $itemId  Идентификатор объявления, в контексте которого блокируем
-     * @param  int|null  $reasonId  Причина блокировки: 1 — спам, 2 — мошенничество, 3 — оскорбления и хамство, 4 — другая причина
+     * @param  BlacklistReasonEnum|int|null  $reasonId  Причина блокировки: 1 — спам, 2 — мошенничество, 3 — оскорбления и хамство, 4 — другая причина
      *
      * @throws ClientResponseException
      * @throws TokenValidException
      *
      * @link https://developers.avito.ru/api-catalog/messenger/documentation#operation/postBlacklistV2
      */
-    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null): bool
+    public function addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, BlacklistReasonEnum|int|null $reasonId = null): bool
     {
         return $this->addUserToBlacklistAction->handle($userId, $blockedUserId, $itemId, $reasonId);
     }

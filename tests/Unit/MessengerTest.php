@@ -4,6 +4,8 @@ use Illuminate\Http\Client\Request;
 use Illuminate\Support\Facades\Http;
 use Voyanara\LaravelApiClient\Application\Facades\Client;
 use Voyanara\LaravelApiClient\Application\Facades\Messenger;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\BlacklistReasonEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Messenger\ChatTypeEnum;
 
 beforeEach(function () {
     storeToken('valid-token');
@@ -46,6 +48,26 @@ it('omits empty chat filters', function () {
     messenger()->getChats(42);
 
     Http::assertSent(fn (Request $request) => queryOf($request) === ['limit' => '10']);
+});
+
+it('filters chats by chat type enums', function () {
+    Http::fake([
+        'api.avito.ru/messenger/v2/accounts/42/chats*' => Http::response(['chats' => [], 'meta' => []]),
+    ]);
+
+    messenger()->getChats(42, chatTypes: [ChatTypeEnum::U2I, ChatTypeEnum::U2U, ChatTypeEnum::A2U]);
+
+    Http::assertSent(fn (Request $request) => queryOf($request) === ['limit' => '10', 'chat_types' => 'u2i,u2u,a2u']);
+});
+
+it('accepts chat type enums and strings together', function () {
+    Http::fake([
+        'api.avito.ru/messenger/v2/accounts/42/chats*' => Http::response(['chats' => [], 'meta' => []]),
+    ]);
+
+    messenger()->getChats(42, chatTypes: [ChatTypeEnum::A2U, 'u2i']);
+
+    Http::assertSent(fn (Request $request) => queryOf($request)['chat_types'] === 'a2u,u2i');
 });
 
 it('returns chat info', function () {
@@ -179,6 +201,36 @@ it('adds a user to the blacklist', function () {
             'context' => ['item_id' => 1001, 'reason_id' => 1],
         ]],
     ]);
+});
+
+it('adds a user to the blacklist with a reason enum', function (BlacklistReasonEnum $reason, int $reasonId) {
+    Http::fake([
+        'api.avito.ru/messenger/v2/accounts/42/blacklist' => Http::response([]),
+    ]);
+
+    expect(messenger()->addUserToBlacklist(42, 99, itemId: 1001, reasonId: $reason))->toBeTrue();
+
+    Http::assertSent(fn (Request $request) => $request->data() === [
+        'users' => [[
+            'user_id' => 99,
+            'context' => ['item_id' => 1001, 'reason_id' => $reasonId],
+        ]],
+    ]);
+})->with([
+    'spam' => [BlacklistReasonEnum::SPAM, 1],
+    'fraud' => [BlacklistReasonEnum::FRAUD, 2],
+    'insult' => [BlacklistReasonEnum::INSULT, 3],
+    'other' => [BlacklistReasonEnum::OTHER, 4],
+]);
+
+it('adds a user to the blacklist without a context', function () {
+    Http::fake([
+        'api.avito.ru/messenger/v2/accounts/42/blacklist' => Http::response([]),
+    ]);
+
+    messenger()->addUserToBlacklist(42, 99);
+
+    Http::assertSent(fn (Request $request) => $request->data() === ['users' => [['user_id' => 99]]]);
 });
 
 it('subscribes to and unsubscribes from webhooks', function () {
