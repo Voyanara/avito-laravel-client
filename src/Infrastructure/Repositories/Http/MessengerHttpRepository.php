@@ -101,7 +101,7 @@ class MessengerHttpRepository extends BaseHttpRepository
      */
     public function uploadImage(int $userId, string $filePath): UploadImageResponse
     {
-        $url = 'https://api.avito.ru/messenger/v1/accounts/'.$userId.'/uploadImages';
+        $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/uploadImages';
         $attach = RequestAttachVO::from([
             'name' => 'uploadfile[]',
             'content' => file_get_contents($filePath),

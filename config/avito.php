@@ -59,9 +59,9 @@ return [
     | If the token storage method is set to 'file', this setting determines
     | the name of the file where the token will be stored. You can set it
     | using the environment variable 'TOKEN_FILE_NAME'. The default file name
-    | is 'no-name-token'.
+    | is 'avito-token'.
     |
-    | Example: 'avito-token.json'
+    | Example: 'my-app-avito-token' (stored as my-app-avito-token.json)
     */
-    'file_name' => env('TOKEN_FILE_NAME', 'no-nanme-token'),
+    'file_name' => env('TOKEN_FILE_NAME', 'avito-token'),
 ];

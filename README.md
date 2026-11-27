@@ -70,7 +70,7 @@ composer require voyanara/avito-laravel-client
 
 The service provider and the `AvitoClient` facade are registered automatically via package discovery.
 
-Publish the config file — **this step is required**, the package reads its settings from `config/avito.php`:
+The package works out of the box with `.env` variables. Publish the config file only if you want to customize it:
 
 ```bash
 php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider" --tag=config
@@ -94,7 +94,7 @@ AVITO_SECRET=your-client-secret
 # Optional
 AVITO_API_URL=https://api.avito.ru
 AVITO_TOKEN_STORAGE=file          # file | database
-TOKEN_FILE_NAME=avito-token       # used by the file storage
+TOKEN_FILE_NAME=avito-token       # file storage: storage/app/avito_module/avito-token.json
 ```
 
 | Key | Env variable | Default | Description |
@@ -103,7 +103,7 @@ TOKEN_FILE_NAME=avito-token       # used by the file storage
 | `client_id` | `AVITO_CLIENT_ID` | — | Application client ID |
 | `secret` | `AVITO_SECRET` | — | Application client secret |
 | `token_storage` | `AVITO_TOKEN_STORAGE` | `file` | Where the access token is cached: `file` or `database` |
-| `file_name` | `TOKEN_FILE_NAME` | `no-nanme-token` | File name for the `file` storage (saved to `storage/app/avito_module/{name}.json`) |
+| `file_name` | `TOKEN_FILE_NAME` | `avito-token` | File name for the `file` storage (saved to `storage/app/avito_module/{name}.json`) |
 
 ## Usage
 
@@ -238,9 +238,9 @@ $spent = $history->operations->sum('amountTotal');
 
 The package uses the OAuth 2.0 `client_credentials` flow:
 
-1. On first use the client requests a token from `POST /token` with your `client_id` and `client_secret`.
+1. On the first API call the client requests a token from `POST /token` with your `client_id` and `client_secret`. Resolving `Client` from the container makes no HTTP requests.
 2. The token is cached in the configured storage, so requests don't fetch a new token every time.
-3. If Avito answers `401` or `403`, the token is refreshed once and the request is retried.
+3. If Avito answers `401` or `403`, the token is refreshed once and the request is retried. The new token is reused for all following requests, including long-running processes such as queue workers and Octane.
 
 | Storage | Where the token lives |
 |---|---|
@@ -260,7 +260,7 @@ $this->app->singleton(TokenStorageInterface::class, RedisTokenStorage::class);
 | Exception | When |
 |---|---|
 | `Domain\Exceptions\ClientCredentialsException` | `AVITO_CLIENT_ID` or `AVITO_SECRET` is not set |
-| `Domain\Exceptions\TokenValidException` | The token is still rejected after a refresh |
+| `Domain\Exceptions\TokenValidException` | The token is still rejected (`401`/`403`) after a refresh; extends `ClientResponseException` |
 | `Domain\Exceptions\ClientResponseException` | Any other API error (4xx/5xx, or an `error` field in the response); the message contains the raw response body |
 
 ```php

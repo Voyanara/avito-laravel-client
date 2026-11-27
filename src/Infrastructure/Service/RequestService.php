@@ -21,6 +21,12 @@ class RequestService
     protected ?string $apiUrl = null;
 
     /**
+     * Access token currently in use. Kept in memory so that, after a refresh,
+     * later requests use the new token instead of the expired one.
+     */
+    protected ?string $accessToken = null;
+
+    /**
      * Устанавливает данные для обновления токена
      */
     public function setTokenCredentials(
@@ -48,6 +54,10 @@ class RequestService
         bool $withAttach = false,
         ?RequestAttachVO $attachData = null,
     ): array {
+        if ($isTokenRequired && $this->canRefreshToken()) {
+            $token = $this->currentToken();
+        }
+
         try {
             return $this->executeRequest($url, $method, $data, $isTokenRequired, $token, $asJson, $withAttach, $attachData);
         } catch (TokenValidException $e) {
@@ -64,6 +74,17 @@ class RequestService
     protected function canRefreshToken(): bool
     {
         return $this->tokenStorage instanceof TokenStorageInterface && $this->clientId !== null && $this->clientSecret !== null;
+    }
+
+    /**
+     * Returns the token in use: from memory, then from storage, otherwise requests a new one.
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    protected function currentToken(): string
+    {
+        return $this->accessToken ??= $this->tokenStorage->get($this->clientId, $this->clientSecret) ?: $this->refreshToken();
     }
 
     /**
@@ -86,7 +107,7 @@ class RequestService
 
         $this->tokenStorage->set($tokenResponse, $this->clientId, $this->clientSecret);
 
-        return $tokenResponse->accessToken;
+        return $this->accessToken = $tokenResponse->accessToken;
     }
 
     /**
@@ -104,7 +125,7 @@ class RequestService
         bool $withAttach = false,
         ?RequestAttachVO $attachData = null,
     ): array {
-        Log::info('Info request '.$url);
+        Log::debug('Avito API request: '.$method.' '.$url);
         $headers = [
             'accept' => 'application/json',
         ];
@@ -122,12 +143,14 @@ class RequestService
             $response = Http::asForm()->withHeaders($headers)->{$method}($url, $data);
         }
 
-        if ($response->json('error')) {
-            throw new ClientResponseException($response->body());
-        }
-
+        // Check auth errors first: Avito may return an "error" field together with 401/403,
+        // and the token must be refreshed in that case instead of failing right away.
         if (($response->status() === 401 || $response->status() === 403) && $isTokenRequired) {
             throw new TokenValidException($response->body());
+        }
+
+        if ($response->json('error')) {
+            throw new ClientResponseException($response->body());
         }
 
         if ($response->failed()) {

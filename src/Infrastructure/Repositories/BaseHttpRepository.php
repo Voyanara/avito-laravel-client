@@ -13,9 +13,9 @@ use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 abstract class BaseHttpRepository
 {
     /**
+     * @param  string|null  $token  Not used anymore: the access token is resolved lazily by RequestService.
+     *
      * @throws ClientCredentialsException
-     * @throws ClientResponseException
-     * @throws TokenValidException
      */
     public function __construct(
         public string $apiUrl,
@@ -29,9 +29,10 @@ abstract class BaseHttpRepository
     }
 
     /**
+     * Passes the credentials to RequestService. No HTTP request is made here:
+     * the access token is fetched on the first API call and refreshed when it expires.
+     *
      * @throws ClientCredentialsException
-     * @throws ClientResponseException
-     * @throws TokenValidException
      */
     protected function init(): void
     {
@@ -45,14 +46,6 @@ abstract class BaseHttpRepository
             $this->secret,
             $this->apiUrl
         );
-
-        $this->token = $this->tokenStorage->get($this->clientId, $this->secret);
-
-        if (! $this->token) {
-            $tokenDTO = $this->getToken($this->clientId, $this->secret);
-            $this->tokenStorage->set($tokenDTO, $this->clientId, $this->secret);
-            $this->token = $tokenDTO->accessToken;
-        }
     }
 
     /**

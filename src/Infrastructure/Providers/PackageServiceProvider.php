@@ -23,10 +23,6 @@ abstract class PackageServiceProvider extends ServiceProvider
             __DIR__.'/../../../config/avito.php' => config_path('avito.php'),
         ]);
 
-        $this->mergeConfigFrom(
-            __DIR__.'/../../../config/avito.php', 'avito'
-        );
-
         $this->publishesMigrations([
             __DIR__.'/../../../database/migrations' => database_path('migrations'),
         ]);
@@ -39,6 +35,11 @@ abstract class PackageServiceProvider extends ServiceProvider
     #[Override]
     public function register(): void
     {
+        // Merge in register() so the package works without a published config file.
+        $this->mergeConfigFrom(
+            __DIR__.'/../../../config/avito.php', 'avito'
+        );
+
         $this->app->singleton(TokenStorageInterface::class, function (Application $app) {
             return match (TokenStorageTypeEnum::from(config('avito.token_storage', 'file'))) {
                 TokenStorageTypeEnum::FILE => new FileStorage,

@@ -70,7 +70,7 @@ composer require voyanara/avito-laravel-client
 
 Сервис-провайдер и фасад `AvitoClient` регистрируются автоматически через package discovery.
 
-Опубликуйте конфиг — **это обязательный шаг**, пакет читает настройки из `config/avito.php`:
+Пакет работает сразу с переменными из `.env`. Публиковать конфиг нужно, только если хотите его изменить:
 
 ```bash
 php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider" --tag=config
@@ -94,7 +94,7 @@ AVITO_SECRET=your-client-secret
 # Необязательно
 AVITO_API_URL=https://api.avito.ru
 AVITO_TOKEN_STORAGE=file          # file | database
-TOKEN_FILE_NAME=avito-token       # имя файла для хранилища file
+TOKEN_FILE_NAME=avito-token       # хранилище file: storage/app/avito_module/avito-token.json
 ```
 
 | Ключ | Переменная окружения | По умолчанию | Описание |
@@ -103,7 +103,7 @@ TOKEN_FILE_NAME=avito-token       # имя файла для хранилища 
 | `client_id` | `AVITO_CLIENT_ID` | — | Client ID приложения |
 | `secret` | `AVITO_SECRET` | — | Client secret приложения |
 | `token_storage` | `AVITO_TOKEN_STORAGE` | `file` | Где кешировать токен: `file` или `database` |
-| `file_name` | `TOKEN_FILE_NAME` | `no-nanme-token` | Имя файла для хранилища `file` (сохраняется в `storage/app/avito_module/{name}.json`) |
+| `file_name` | `TOKEN_FILE_NAME` | `avito-token` | Имя файла для хранилища `file` (сохраняется в `storage/app/avito_module/{name}.json`) |
 
 ## Использование
 
@@ -238,9 +238,9 @@ $spent = $history->operations->sum('amountTotal');
 
 Пакет использует OAuth 2.0 с типом `client_credentials`:
 
-1. При первом обращении клиент запрашивает токен через `POST /token`, передавая `client_id` и `client_secret`.
+1. При первом вызове API клиент запрашивает токен через `POST /token`, передавая `client_id` и `client_secret`. Само получение `Client` из контейнера HTTP-запросов не делает.
 2. Токен кешируется в выбранном хранилище, чтобы не запрашивать новый на каждый запрос.
-3. Если Авито отвечает `401` или `403`, токен один раз обновляется и запрос повторяется.
+3. Если Авито отвечает `401` или `403`, токен один раз обновляется и запрос повторяется. Новый токен используется во всех следующих запросах, в том числе в долгоживущих процессах: воркерах очередей и Octane.
 
 | Хранилище | Где лежит токен |
 |---|---|
@@ -260,7 +260,7 @@ $this->app->singleton(TokenStorageInterface::class, RedisTokenStorage::class);
 | Исключение | Когда возникает |
 |---|---|
 | `Domain\Exceptions\ClientCredentialsException` | Не заданы `AVITO_CLIENT_ID` или `AVITO_SECRET` |
-| `Domain\Exceptions\TokenValidException` | Токен отклонён даже после обновления |
+| `Domain\Exceptions\TokenValidException` | Токен отклонён (`401`/`403`) даже после обновления; наследует `ClientResponseException` |
 | `Domain\Exceptions\ClientResponseException` | Любая другая ошибка API (4xx/5xx или поле `error` в ответе); в сообщении — исходное тело ответа |
 
 ```php
