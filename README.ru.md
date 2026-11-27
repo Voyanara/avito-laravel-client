@@ -17,7 +17,7 @@
 
 # Avito Laravel Client
 
-Типизированный Laravel SDK для [API Авито](https://developers.avito.ru/): отвечайте клиентам в мессенджере Авито, управляйте вебхуками, получайте данные аккаунта, баланс и историю операций. OAuth-токен пакет получает и обновляет сам, а ответы приходят в виде неизменяемых DTO на базе [spatie/laravel-data](https://github.com/spatie/laravel-data).
+Типизированный Laravel SDK для [API Авито](https://www.avito.ru/developers/): отвечайте клиентам в мессенджере Авито, управляйте вебхуками, получайте данные аккаунта, баланс и историю операций. OAuth-токен пакет получает и обновляет сам, а ответы приходят в виде неизменяемых DTO на базе [spatie/laravel-data](https://github.com/spatie/laravel-data).
 
 ```php
 $me = AvitoClient::user()->self();
@@ -66,7 +66,7 @@ foreach ($chats->chats as $chat) {
 > [!NOTE]
 > Laravel 11 больше не поддерживается командой Laravel, а свежие версии Composer отказываются его устанавливать из-за неисправленных уязвимостей. Если вы ещё на Laravel 11, используйте `1.2.x`: `composer require voyanara/avito-laravel-client:^1.2`.
 
-Также нужен аккаунт Авито с доступом к API и пара `client_id` / `client_secret` из [кабинета разработчика Авито](https://developers.avito.ru/).
+Также нужен аккаунт Авито с доступом к API и пара `client_id` / `client_secret` из [кабинета разработчика Авито](https://www.avito.ru/developers/).
 
 ## Установка
 
@@ -158,7 +158,7 @@ echo "Основной: {$balance->real} ₽, бонусный: {$balance->bonus
 
 ### Мессенджер — `$client->messenger()`
 
-Полное покрытие [API мессенджера Авито](https://developers.avito.ru/api-catalog/messenger/documentation):
+Полное покрытие [API мессенджера Авито](https://www.avito.ru/developers/api-catalog/messenger/documentation):
 
 | Метод | Описание | Scope |
 |---|---|---|
@@ -307,16 +307,12 @@ GitHub Actions прогоняет Pint, PHPStan и офлайн-тесты на 
 
 ## Дорожная карта
 
-- [x] Авторизация (`client_credentials`) с автоматическим обновлением токена
-- [x] Аккаунт: профиль, баланс, история операций
-- [x] Мессенджер: все 13 методов
-- [ ] Объявления: список, статусы, цены, услуги продвижения
-- [ ] Автозагрузка: отчёты и статус выгрузки
-- [ ] Статистика: просмотры, контакты, избранное
-- [ ] Рейтинги и отзывы
-- [ ] DTO для входящих вебхуков и готовый контроллер
-
-Нужно что-то из этого быстрее? Создайте issue или пришлите pull request.
+- [x] [Авторизация](https://www.avito.ru/developers/api-catalog/auth/documentation)
+- [x] [Информация о пользователе](https://www.avito.ru/developers/api-catalog/user/documentation)
+- [x] [Мессенджер](https://www.avito.ru/developers/api-catalog/messenger/documentation)
+- [ ] [Объявления](https://www.avito.ru/developers/api-catalog/item/documentation)
+- [ ] [Рейтинги и отзывы](https://www.avito.ru/developers/api-catalog/ratings/documentation)
+- [ ] [Автозагрузка](https://www.avito.ru/developers/api-catalog/autoload/documentation)
 
 ## История изменений
 

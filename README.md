@@ -17,7 +17,7 @@
 
 # Avito Laravel Client
 
-A typed Laravel SDK for the [Avito API](https://developers.avito.ru/) (Авито): reply to customers in Avito Messenger, manage webhooks, and read account info, balance and operation history — with automatic OAuth token handling and immutable DTO responses built on [spatie/laravel-data](https://github.com/spatie/laravel-data).
+A typed Laravel SDK for the [Avito API](https://www.avito.ru/developers/) (Авито): reply to customers in Avito Messenger, manage webhooks, and read account info, balance and operation history — with automatic OAuth token handling and immutable DTO responses built on [spatie/laravel-data](https://github.com/spatie/laravel-data).
 
 ```php
 $me = AvitoClient::user()->self();
@@ -66,7 +66,7 @@ foreach ($chats->chats as $chat) {
 > [!NOTE]
 > Laravel 11 is no longer supported by the Laravel team, and recent Composer versions refuse to install it because of unpatched security advisories. If you are still on Laravel 11, use `1.2.x`: `composer require voyanara/avito-laravel-client:^1.2`.
 
-You also need an Avito account with API access and a `client_id` / `client_secret` pair from the [Avito developer portal](https://developers.avito.ru/).
+You also need an Avito account with API access and a `client_id` / `client_secret` pair from the [Avito developer portal](https://www.avito.ru/developers/).
 
 ## Installation
 
@@ -158,7 +158,7 @@ echo "Real: {$balance->real} ₽, bonus: {$balance->bonus} ₽";
 
 ### Messenger — `$client->messenger()`
 
-Full coverage of the [Avito Messenger API](https://developers.avito.ru/api-catalog/messenger/documentation):
+Full coverage of the [Avito Messenger API](https://www.avito.ru/developers/api-catalog/messenger/documentation):
 
 | Method | Description | Scope |
 |---|---|---|
@@ -307,16 +307,12 @@ GitHub Actions runs Pint, PHPStan and the offline tests on PHP 8.3 / 8.4 / 8.5 �
 
 ## Roadmap
 
-- [x] Authorization (`client_credentials`) with automatic refresh
-- [x] Account: profile, balance, operation history
-- [x] Messenger: all 13 methods
-- [ ] Items: listings, statuses, prices, VAS
-- [ ] Autoload: reports and upload status
-- [ ] Statistics: views, contacts, favorites
-- [ ] Ratings and reviews
-- [ ] Webhook payload DTOs and a ready-made controller
-
-Need one of these sooner? Open an issue — or a pull request.
+- [x] [Authorization](https://www.avito.ru/developers/api-catalog/auth/documentation)
+- [x] [User information](https://www.avito.ru/developers/api-catalog/user/documentation)
+- [x] [Messenger](https://www.avito.ru/developers/api-catalog/messenger/documentation)
+- [ ] [Items](https://www.avito.ru/developers/api-catalog/item/documentation)
+- [ ] [Ratings and reviews](https://www.avito.ru/developers/api-catalog/ratings/documentation)
+- [ ] [Autoload](https://www.avito.ru/developers/api-catalog/autoload/documentation)
 
 ## Changelog
 
