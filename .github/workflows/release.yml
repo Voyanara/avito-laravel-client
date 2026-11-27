@@ -4,6 +4,7 @@ name: Release
 # the tests run first, and only if they pass a GitHub release is created.
 # Release notes are taken from the matching "## [1.2.2]" section of CHANGELOG.md;
 # if there is no such section, GitHub generates them from the commits.
+# If a release with this tag already exists, its title and notes are updated.
 on:
   push:
     tags: ['*']
@@ -37,12 +38,27 @@ jobs:
           echo "Release notes for $GITHUB_REF_NAME:"
           cat notes.md
 
-      - name: Create release
+      - name: Create or update release
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          tag="$GITHUB_REF_NAME"
+          has_notes=false
           if grep -q '[^[:space:]]' notes.md; then
-            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --notes-file notes.md
+            has_notes=true
+          fi
+
+          # A release with this tag may already exist: created by hand, or an old one
+          # that GitHub re-attached when the tag was pushed again. Update it instead of failing.
+          if gh release view "$tag" > /dev/null 2>&1; then
+            echo "Release $tag already exists, updating it"
+            if [ "$has_notes" = true ]; then
+              gh release edit "$tag" --title "$tag" --notes-file notes.md --draft=false
+            else
+              gh release edit "$tag" --title "$tag" --draft=false
+            fi
+          elif [ "$has_notes" = true ]; then
+            gh release create "$tag" --verify-tag --title "$tag" --notes-file notes.md
           else
-            gh release create "$GITHUB_REF_NAME" --verify-tag --title "$GITHUB_REF_NAME" --generate-notes
+            gh release create "$tag" --verify-tag --title "$tag" --generate-notes
           fi

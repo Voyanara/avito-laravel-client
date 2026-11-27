@@ -10,6 +10,9 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Changed
+- Release workflow updates an existing GitHub release with the same tag (title and notes from this changelog) instead of failing
+
 ## [1.4.1] - 2026-11-28
 
 ### Added
