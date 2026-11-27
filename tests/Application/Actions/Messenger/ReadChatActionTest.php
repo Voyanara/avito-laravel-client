@@ -19,6 +19,10 @@ class ReadChatActionTest extends TestCase
         $user = $actionUserInfo->handle();
         $this->assertInstanceOf(UserInfoSelfResponse::class, $user);
         $chats = $actionChats->handle($user->id, limit: 2);
+
+        if ($chats->chats->isEmpty()) {
+            $this->markTestSkipped('Live test: the Avito account has no chats.');
+        }
         /**
          * @var MessengerChatItemDTO $firstChat
          */
@@ -30,7 +34,7 @@ class ReadChatActionTest extends TestCase
         $this->assertInstanceOf(MessengerChatItemDTO::class, $chat);
 
         $client = $this->app->make(Client::class);
-        $client->messenger()->readChat(env('DEMO_SENDER'), $chat->id);
+        $client->messenger()->readChat($user->id, $chat->id);
 
     }
 }

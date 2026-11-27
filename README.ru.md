@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Voyanara/avito-laravel-client/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Voyanara/avito-laravel-client/tests.yml?branch=main&style=flat-square&label=tests" alt="Тесты"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/v/voyanara/avito-laravel-client.svg?style=flat-square&label=packagist" alt="Последняя версия на Packagist"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/dt/voyanara/avito-laravel-client.svg?style=flat-square" alt="Загрузки"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/php-v/voyanara/avito-laravel-client.svg?style=flat-square" alt="Версия PHP"></a>
@@ -42,6 +43,7 @@ foreach ($chats->chats as $chat) {
 - [Обработка ошибок](#обработка-ошибок)
 - [Тесты](#тесты)
 - [Дорожная карта](#дорожная-карта)
+- [История изменений](#история-изменений)
 - [Как помочь проекту](#как-помочь-проекту)
 - [Лицензия](#лицензия)
 
@@ -275,19 +277,29 @@ try {
 
 ## Тесты
 
-Тесты работают с настоящим API Авито, поэтому в окружении нужны рабочие ключи: `AVITO_CLIENT_ID` и `AVITO_SECRET` (см. `.env.testing.example`). Тестам мессенджера также нужны `DEMO_SENDER` (ваш ID пользователя Авито) и `DEMO_CHAT_ID` (чат, в который можно писать).
+Тесты разделены на два набора:
+
+| Набор | Папка | Что проверяет | Нужны ключи |
+|---|---|---|---|
+| `Unit` (по умолчанию) | `tests/Unit` | Код пакета: запросы, разбор ответов, работу с токеном, ошибки. API Авито подменяется через `Http::fake()` | Нет |
+| `Live` | `tests/Application` | Что настоящий API Авито по-прежнему отвечает так, как ожидает пакет | Да |
 
 ```bash
 composer install
-./vendor/bin/pest
+composer test        # офлайн-тесты, их же запускает CI
+composer test:live   # живые тесты с настоящим API Авито
 ```
+
+Живым тестам нужны `AVITO_CLIENT_ID` и `AVITO_SECRET`, а части из них ещё `DEMO_SENDER`, `DEMO_CHAT_ID`, `DEMO_VOICE_ID` и `DEMO_BLACKLIST_USER_ID` (см. `.env.testing.example`). Если нужные переменные не заданы, тест пропускается, а не падает. Учтите, что эти тесты отправляют и удаляют настоящие сообщения в чате `DEMO_CHAT_ID`.
 
 Статический анализ и стиль кода:
 
 ```bash
-./vendor/bin/phpstan analyse
-./vendor/bin/pint
+composer analyse   # PHPStan
+composer lint      # Pint (только проверка; исправить: ./vendor/bin/pint)
 ```
+
+GitHub Actions прогоняет Pint, PHPStan и офлайн-тесты на PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 при каждом push и pull request.
 
 ## Дорожная карта
 
@@ -302,13 +314,18 @@ composer install
 
 Нужно что-то из этого быстрее? Создайте issue или пришлите pull request.
 
+## История изменений
+
+Что менялось в каждой версии — в файле [CHANGELOG.md](CHANGELOG.md).
+
 ## Как помочь проекту
 
 Pull request'ы приветствуются:
 
 1. Сделайте форк и создайте ветку от `main`.
 2. Добавьте или обновите тесты для своего изменения.
-3. Перед отправкой запустите `./vendor/bin/pint` и `./vendor/bin/phpstan analyse`.
+3. Перед отправкой запустите `composer test`, `composer lint` и `composer analyse`.
+4. Опишите изменение в разделе `Unreleased` файла [CHANGELOG.md](CHANGELOG.md).
 
 Нашли ошибку или нужен метод, которого нет? [Создайте issue](https://github.com/Voyanara/avito-laravel-client/issues).
 

@@ -10,6 +10,8 @@ class DeleteMessageActionTest extends TestCase
 {
     public function test_handle(): void
     {
+        $this->requireEnv('DEMO_SENDER', 'DEMO_CHAT_ID');
+
         $client = $this->app->make(Client::class);
 
         $message = $client->messenger()->sendMessage(env('DEMO_SENDER'), env('DEMO_CHAT_ID'), 'Сообщение для проверки удаления');

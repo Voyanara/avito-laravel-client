@@ -3,10 +3,16 @@
          xsi:noNamespaceSchemaLocation="https://schema.phpunit.de/10.3/phpunit.xsd"
          bootstrap="vendor/autoload.php"
          colors="true" stopOnFailure="true" cacheResult="false"
+         defaultTestSuite="Unit"
 >
     <testsuites>
-        <testsuite name="Test Suite">
-            <directory suffix="Test.php">./tests</directory>
+        <!-- Offline tests with a faked Avito API: no credentials needed, run in CI. -->
+        <testsuite name="Unit">
+            <directory suffix="Test.php">./tests/Unit</directory>
+        </testsuite>
+        <!-- Live tests against the real Avito API: composer test:live -->
+        <testsuite name="Live">
+            <directory suffix="Test.php">./tests/Application</directory>
         </testsuite>
     </testsuites>
     <source>

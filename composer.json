@@ -38,6 +38,12 @@
             "name": "Kitsen Artem"
         }
     ],
+    "scripts": {
+        "test": "pest",
+        "test:live": "pest --testsuite=Live",
+        "lint": "pint --test",
+        "analyse": "phpstan analyse --memory-limit=1G"
+    },
     "config": {
         "allow-plugins": {
             "pestphp/pest-plugin": true

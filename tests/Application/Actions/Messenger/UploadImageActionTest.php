@@ -11,6 +11,8 @@ class UploadImageActionTest extends TestCase
 {
     public function test_handle(): void
     {
+        $this->requireEnv('DEMO_SENDER', 'DEMO_CHAT_ID');
+
         $client = $this->app->make(Client::class);
         $filePath = __DIR__.'/Screenshot_1.jpg';
 

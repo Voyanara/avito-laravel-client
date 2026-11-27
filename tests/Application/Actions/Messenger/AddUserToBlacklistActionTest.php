@@ -9,6 +9,8 @@ class AddUserToBlacklistActionTest extends TestCase
 {
     public function test_handle(): void
     {
+        $this->requireEnv('DEMO_SENDER');
+
         if (! env('DEMO_BLACKLIST_USER_ID')) {
             $this->markTestSkipped('DEMO_BLACKLIST_USER_ID is not set: blocking is irreversible via API, a dedicated test user id is required.');
         }

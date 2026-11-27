@@ -19,6 +19,10 @@ class GetChatInfoActionTest extends TestCase
         $this->assertInstanceOf(UserInfoSelfResponse::class, $user);
         $chats = $actionChats->handle($user->id, limit: 2);
 
+        if ($chats->chats->isEmpty()) {
+            $this->markTestSkipped('Live test: the Avito account has no chats.');
+        }
+
         /**
          * @var MessengerChatItemDTO $firstChat
          */

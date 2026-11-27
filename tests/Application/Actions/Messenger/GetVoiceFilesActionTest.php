@@ -10,6 +10,8 @@ class GetVoiceFilesActionTest extends TestCase
 {
     public function test_handle(): void
     {
+        $this->requireEnv('DEMO_SENDER');
+
         if (! env('DEMO_VOICE_ID')) {
             $this->markTestSkipped('DEMO_VOICE_ID is not set: a real voice_id from a chat message of type voice is required.');
         }

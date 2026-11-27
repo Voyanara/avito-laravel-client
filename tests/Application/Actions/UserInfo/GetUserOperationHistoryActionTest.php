@@ -13,7 +13,7 @@ class GetUserOperationHistoryActionTest extends TestCase
         $action = $this->app->make(GetUserOperationHistoryAction::class);
 
         $this->assertInstanceOf(
-            UserInfoOperationsResponse::class, $action->handle('10/09/2024', '11/09/2024')
+            UserInfoOperationsResponse::class, $action->handle(now()->subWeek()->toIso8601String(), now()->toIso8601String())
         );
     }
 }

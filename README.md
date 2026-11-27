@@ -3,6 +3,7 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/Voyanara/avito-laravel-client/actions/workflows/tests.yml"><img src="https://img.shields.io/github/actions/workflow/status/Voyanara/avito-laravel-client/tests.yml?branch=main&style=flat-square&label=tests" alt="Tests"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/v/voyanara/avito-laravel-client.svg?style=flat-square&label=packagist" alt="Latest Version on Packagist"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/dt/voyanara/avito-laravel-client.svg?style=flat-square" alt="Total Downloads"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/php-v/voyanara/avito-laravel-client.svg?style=flat-square" alt="PHP Version"></a>
@@ -42,6 +43,7 @@ foreach ($chats->chats as $chat) {
 - [Error handling](#error-handling)
 - [Testing](#testing)
 - [Roadmap](#roadmap)
+- [Changelog](#changelog)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -275,19 +277,29 @@ try {
 
 ## Testing
 
-The test suite runs against the real Avito API, so it needs valid credentials in the environment: `AVITO_CLIENT_ID` and `AVITO_SECRET` (see `.env.testing.example`). The messenger tests also use `DEMO_SENDER` (your Avito user ID) and `DEMO_CHAT_ID` (a chat to write to).
+There are two test suites:
+
+| Suite | Folder | What it checks | Needs credentials |
+|---|---|---|---|
+| `Unit` (default) | `tests/Unit` | The package code: requests, response mapping, token handling, errors. The Avito API is faked with `Http::fake()` | No |
+| `Live` | `tests/Application` | That the real Avito API still answers the way the package expects | Yes |
 
 ```bash
 composer install
-./vendor/bin/pest
+composer test        # offline tests, also run in CI
+composer test:live   # live tests against the real Avito API
 ```
+
+The live tests read `AVITO_CLIENT_ID` and `AVITO_SECRET`, and some of them also need `DEMO_SENDER`, `DEMO_CHAT_ID`, `DEMO_VOICE_ID` and `DEMO_BLACKLIST_USER_ID` (see `.env.testing.example`). A live test whose variables are not set is skipped, not failed. Note that they send and delete real messages in `DEMO_CHAT_ID`.
 
 Static analysis and code style:
 
 ```bash
-./vendor/bin/phpstan analyse
-./vendor/bin/pint
+composer analyse   # PHPStan
+composer lint      # Pint (check only; run ./vendor/bin/pint to fix)
 ```
+
+GitHub Actions runs Pint, PHPStan and the offline tests on PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 for every push and pull request.
 
 ## Roadmap
 
@@ -302,13 +314,18 @@ Static analysis and code style:
 
 Need one of these sooner? Open an issue — or a pull request.
 
+## Changelog
+
+See [CHANGELOG.md](CHANGELOG.md) for what has changed in each version.
+
 ## Contributing
 
 Pull requests are welcome. Please:
 
 1. Fork the repository and create a branch from `main`.
 2. Add or update tests for your change.
-3. Run `./vendor/bin/pint` and `./vendor/bin/phpstan analyse` before pushing.
+3. Run `composer test`, `composer lint` and `composer analyse` before pushing.
+4. Describe your change in the `Unreleased` section of [CHANGELOG.md](CHANGELOG.md).
 
 Found a bug or missing endpoint? [Open an issue](https://github.com/Voyanara/avito-laravel-client/issues).
 

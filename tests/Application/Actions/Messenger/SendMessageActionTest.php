@@ -10,6 +10,8 @@ class SendMessageActionTest extends TestCase
 {
     public function test_handle(): void
     {
+        $this->requireEnv('DEMO_SENDER', 'DEMO_CHAT_ID');
+
         $client = $this->app->make(Client::class);
         $response = $client->messenger()->sendMessage(env('DEMO_SENDER'), env('DEMO_CHAT_ID'), 'Добрый день это ответное авто сообщение');
         $this->assertInstanceOf(SendMessageResponse::class, $response);
