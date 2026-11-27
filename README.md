@@ -1,152 +1,319 @@
 <p align="center">
-  <img width="70%" src="https://github.com/user-attachments/assets/b794813c-0dd0-4569-9b42-322980ea0968">
+  <img width="70%" src="https://github.com/user-attachments/assets/b794813c-0dd0-4569-9b42-322980ea0968" alt="Avito Laravel Client">
 </p>
 
-## Avito Laravel API PHP Client
-> This package is a client for the Avito API designed to simplify integration with the Avito platform from your Laravel applications. It provides a set of tools to work with the Avito API, allowing you to automate and streamline tasks related to managing listings, updating information, and obtaining statistics.
+<p align="center">
+  <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/v/voyanara/avito-laravel-client.svg?style=flat-square&label=packagist" alt="Latest Version on Packagist"></a>
+  <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/dt/voyanara/avito-laravel-client.svg?style=flat-square" alt="Total Downloads"></a>
+  <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/php-v/voyanara/avito-laravel-client.svg?style=flat-square" alt="PHP Version"></a>
+  <img src="https://img.shields.io/badge/Laravel-11%20|%2012%20|%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 11 | 12 | 13">
+  <a href="LICENSE"><img src="https://img.shields.io/packagist/l/voyanara/avito-laravel-client.svg?style=flat-square" alt="License"></a>
+</p>
 
-## Why Use the API
+<p align="center">
+  <b>English</b> · <a href="README.ru.md">Русский</a>
+</p>
 
-The Avito API significantly simplifies working on the platform by allowing you to:
+# Avito Laravel Client
 
-- Automate operations and actions you perform on Avito.
-- Integrate Avito with your CRM system, ERP system for content management, messaging system for customer communication, or analytics system.
-- Run your business more efficiently by enabling automatic data updates and obtaining statistics.
+A typed Laravel SDK for the [Avito API](https://developers.avito.ru/) (Авито): reply to customers in Avito Messenger, manage webhooks, and read account info, balance and operation history — with automatic OAuth token handling and immutable DTO responses built on [spatie/laravel-data](https://github.com/spatie/laravel-data).
 
-## Features of the Avito API
+```php
+$me = AvitoClient::user()->self();
 
-With this client, you can:
+$chats = AvitoClient::messenger()->getChats($me->id, unreadOnly: true);
 
-- **Communicate with Customers**: Use ready-made integrations or create your own with the systems you need.
-- **Receive Autoload Information**: Get data on autoload success and errors.
-- **Update Prices and Availability**: Quickly update price and availability information on Avito from your system.
-- **Obtain Statistics**: Analyze the effectiveness of your listings and get detailed statistics.
+foreach ($chats->chats as $chat) {
+    AvitoClient::messenger()->sendMessage($me->id, $chat->id, 'Hi! We will get back to you shortly.');
+    AvitoClient::messenger()->readChat($me->id, $chat->id);
+}
+```
 
-Specific methods for each category (e.g., Avito Real Estate or Avito Jobs) are available in the [Avito API documentation](https://developers.avito.ru/).
+## Contents
+
+- [Features](#features)
+- [Requirements](#requirements)
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+- [API coverage](#api-coverage)
+- [Recipes](#recipes)
+- [Authentication and token storage](#authentication-and-token-storage)
+- [Error handling](#error-handling)
+- [Testing](#testing)
+- [Roadmap](#roadmap)
+- [Contributing](#contributing)
+- [License](#license)
+
+## Features
+
+- **Full Messenger API coverage** — all 13 methods: chats, messages, images, voice messages, blacklist, webhooks.
+- **Account API** — profile, balance and operation history.
+- **Zero-config auth** — the `client_credentials` token is fetched on first use, cached and refreshed automatically when Avito returns `401`/`403`.
+- **Pluggable token storage** — file (default) or database, or your own implementation of `TokenStorageInterface`.
+- **Typed responses** — every call returns a readonly DTO with camelCase properties instead of raw arrays.
+- **Laravel-native** — auto-discovered service provider, facade, dependency injection, `Http` client under the hood (so `Http::fake()` works in your tests).
 
 ## Requirements
 
-- **PHP**: ^8.3 (8.3 / 8.4 / 8.5)
-- **Laravel Framework**: ^11.0 | ^12.0 | ^13.0
-- **Spatie Laravel Data**: ^4.11
+| Package version | PHP | Laravel |
+|---|---|---|
+| `1.2.x` | 8.3 · 8.4 · 8.5 | 11 · 12 · 13 |
 
-Ensure that your environment meets these requirements before proceeding with the installation.
+You also need an Avito account with API access and a `client_id` / `client_secret` pair from the [Avito developer portal](https://developers.avito.ru/).
 
 ## Installation
-
-Laravel Avito API Client can be installed via Composer:
 
 ```bash
 composer require voyanara/avito-laravel-client
 ```
 
-The package will automatically register a service provider.
+The service provider and the `AvitoClient` facade are registered automatically via package discovery.
 
-This package comes with a migration and a configuration file. You can publish them using the following Artisan command:
-
-
-```bash
-php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider --tag="config"
-```
+Publish the config file — **this step is required**, the package reads its settings from `config/avito.php`:
 
 ```bash
-php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider --tag="migrations"
+php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider" --tag=config
 ```
 
-This is the default content of the config file that will be published as config/avito.php
+If you want to store the token in the database, also publish and run the migration:
 
-### Usage
-
-You have several options for using the Avito API client in your Laravel application:
-#### Using the Facade
-
-To use the Avito API client via a facade, you can call methods directly on the AvitoClient facade.
-
-Example:
-```php
-public function action(AvitoClient $client)
-{
-    $client::messenger()->getChats();
-    //or
-    AvitoClient::user()->self();
-}
-```
-If Laravel does not recognize the facade and you have defined it in composer.json under extra > laravel > aliases, make sure to import it in your file:
-```php
-use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade as AvitoClient;
+```bash
+php artisan vendor:publish --provider="Voyanara\LaravelApiClient\Infrastructure\Providers\AvitoModuleServiceProvider" --tag=migrations
+php artisan migrate
 ```
 
-#### Using dependency injection
-Alternatively, you can use dependency injection to access the Avito API client. This approach is recommended if you prefer to inject dependencies into your methods or constructors.
+## Configuration
+
+Add your credentials to `.env`:
+
+```dotenv
+AVITO_CLIENT_ID=your-client-id
+AVITO_SECRET=your-client-secret
+
+# Optional
+AVITO_API_URL=https://api.avito.ru
+AVITO_TOKEN_STORAGE=file          # file | database
+TOKEN_FILE_NAME=avito-token       # used by the file storage
+```
+
+| Key | Env variable | Default | Description |
+|---|---|---|---|
+| `api_url` | `AVITO_API_URL` | `https://api.avito.ru` | Base URL of the Avito API |
+| `client_id` | `AVITO_CLIENT_ID` | — | Application client ID |
+| `secret` | `AVITO_SECRET` | — | Application client secret |
+| `token_storage` | `AVITO_TOKEN_STORAGE` | `file` | Where the access token is cached: `file` or `database` |
+| `file_name` | `TOKEN_FILE_NAME` | `no-nanme-token` | File name for the `file` storage (saved to `storage/app/avito_module/{name}.json`) |
+
+## Usage
+
+The entry point is `Voyanara\LaravelApiClient\Application\Facades\Client`, which exposes two groups of methods:
+
+- `->user()` — account API
+- `->messenger()` — Messenger API
+
+### Dependency injection (recommended)
+
 ```php
 use Voyanara\LaravelApiClient\Application\Facades\Client;
 
-public function action(Client $client)
+class AvitoInboxController
 {
-    $client->messenger()->getChats();
-    //or
-    $client->user()->getBalance();
-    $client->user()->getOperationsHistory();
+    public function __invoke(Client $avito)
+    {
+        $userId = $avito->user()->self()->id;
+
+        return $avito->messenger()->getChats($userId, limit: 20);
+    }
 }
 ```
 
-## Messenger
+### Facade
 
-Full coverage of the [Avito Messenger API](https://developers.avito.ru/api-catalog/messenger/documentation) — all 13 methods are available via `$client->messenger()`:
+```php
+use Voyanara\LaravelApiClient\Application\Facades\AvitoClientFacade as AvitoClient;
+
+$balance = AvitoClient::user()->getBalance($userId);
+
+echo "Real: {$balance->real} ₽, bonus: {$balance->bonus} ₽";
+```
+
+> Most Avito endpoints need your Avito user ID. Get it once with `user()->self()->id` and store it, e.g. in config.
+
+## API coverage
+
+### Account — `$client->user()`
+
+| Method | Returns | Description |
+|---|---|---|
+| `self()` | `UserInfoSelfResponse` | Authorized account: `id`, `name`, `email`, `phone`, `profileUrl` |
+| `getBalance(int $userId)` | `UserInfoBalanceResponse` | Wallet balance: `real` and `bonus` |
+| `getOperationsHistory(string $dateTimeFrom, string $dateTimeTo)` | `UserInfoOperationsResponse` | Operations for a period (ISO 8601; at most one week, no older than one year) |
+
+### Messenger — `$client->messenger()`
+
+Full coverage of the [Avito Messenger API](https://developers.avito.ru/api-catalog/messenger/documentation):
 
 | Method | Description | Scope |
 |---|---|---|
-| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | Get a list of chats | `messenger:read` |
-| `chatInfo(int $userId, string $chatId)` | Get chat info with the last message | `messenger:read` |
-| `messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0)` | Get messages from a chat (does not mark it as read) | `messenger:read` |
+| `getChats(int $userId, int $limit = 10, ?bool $unreadOnly = null, array $itemIds = [], array $chatTypes = [], int $offset = 0)` | List chats; `chatTypes`: `u2i` (about listings), `u2u` (between users) | `messenger:read` |
+| `chatInfo(int $userId, string $chatId)` | Chat info with the last message | `messenger:read` |
+| `messagesListFromChat(int $userId, string $chatId, int $limit = 10, int $offset = 0)` | Messages in a chat (does not mark it as read) | `messenger:read` |
 | `sendMessage(int $userId, string $chatId, string $message, string $type = 'text')` | Send a text message | `messenger:write` |
-| `uploadImage(int $userId, string $filePath)` | Upload an image (JPEG, HEIC, GIF, BMP, PNG; max 24 MB) | `messenger:write` |
-| `sendMessageWithImage(int $userId, string $chatId, string $imageId)` | Send a message with a previously uploaded image | `messenger:write` |
-| `deleteMessage(int $userId, string $chatId, string $messageId)` | Delete a message (within one hour of sending; its type changes to `deleted`) | `messenger:write` |
+| `uploadImage(int $userId, string $filePath)` | Upload an image (JPEG, HEIC, GIF, BMP, PNG; up to 24 MB) | `messenger:write` |
+| `sendMessageWithImage(int $userId, string $chatId, string $imageId)` | Send a previously uploaded image | `messenger:write` |
+| `deleteMessage(int $userId, string $chatId, string $messageId)` | Delete a message (within one hour of sending) | `messenger:write` |
 | `readChat(int $userId, string $chatId)` | Mark a chat as read | `messenger:read` |
-| `getVoiceFiles(int $userId, array $voiceIds)` | Get download links for voice messages (links are valid for one hour) | `messenger:read` |
-| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null)` | Add a user to the blacklist (reasons: 1 — spam, 2 — fraud, 3 — insult, 4 — other) | `messenger:write` |
-| `subscribeWebhook(string $url)` | Enable webhook notifications (V3) | `messenger:read` |
-| `unsubscribeWebhook(string $url)` | Disable webhook notifications | `messenger:read` |
-| `getSubscriptions()` | Get the list of webhook subscriptions | `messenger:read` |
+| `getVoiceFiles(int $userId, array $voiceIds)` | Download links for voice messages (valid for one hour) | `messenger:read` |
+| `addUserToBlacklist(int $userId, int $blockedUserId, ?int $itemId = null, ?int $reasonId = null)` | Block a user (reason: `1` spam, `2` fraud, `3` insult, `4` other) | `messenger:write` |
+| `subscribeWebhook(string $url)` | Subscribe to webhook notifications (v3) | `messenger:read` |
+| `unsubscribeWebhook(string $url)` | Unsubscribe from webhook notifications | `messenger:read` |
+| `getSubscriptions()` | List webhook subscriptions | `messenger:read` |
 
-### Examples
+> [!IMPORTANT]
+> Since November 2025 Avito requires a paid subscription with Messenger API access to read and send chat messages. Without it the API responds with `402` ("Перейдите на подписку с API мессенджера"). Chat lists, chat info and webhook management remain available.
 
-Reply to the first unread chat and mark it as read:
+## Recipes
+
+### Auto-reply to unread chats
 
 ```php
-use Voyanara\LaravelApiClient\Application\Facades\Client;
+$userId = $client->user()->self()->id;
 
-public function action(Client $client)
-{
-    $userId = $client->user()->self()->id;
+$unread = $client->messenger()->getChats($userId, limit: 50, unreadOnly: true);
 
-    $chats = $client->messenger()->getChats($userId, unreadOnly: true);
-    $chat = $chats->chats->first();
-
-    $client->messenger()->sendMessage($userId, $chat->id, 'Hello! Thanks for reaching out.');
+foreach ($unread->chats as $chat) {
+    $client->messenger()->sendMessage($userId, $chat->id, 'Thanks for your message! A manager will reply within 15 minutes.');
     $client->messenger()->readChat($userId, $chat->id);
 }
 ```
 
-Send a photo to a chat:
+Put this in a scheduled job (`Schedule::job(...)->everyMinute()`) and you have a simple auto-responder.
+
+### Read the conversation history
 
 ```php
-$upload = $client->messenger()->uploadImage($userId, storage_path('app/photo.jpg'));
+$history = $client->messenger()->messagesListFromChat($userId, $chatId, limit: 100);
+
+foreach ($history->messages as $message) {
+    $who = $message->direction === 'in' ? 'Customer' : 'You';
+    echo "{$who}: ".($message->content['text'] ?? "[{$message->type}]").PHP_EOL;
+}
+```
+
+### Send a photo
+
+```php
+$upload = $client->messenger()->uploadImage($userId, storage_path('app/catalog/sofa.jpg'));
+
 $client->messenger()->sendMessageWithImage($userId, $chatId, $upload->id);
 ```
 
-Manage webhook notifications:
+### Webhooks
 
 ```php
-$client->messenger()->subscribeWebhook('https://example.com/avito/webhook');
+$client->messenger()->subscribeWebhook(route('avito.webhook'));
 
-$subscriptions = $client->messenger()->getSubscriptions();
-foreach ($subscriptions->subscriptions as $subscription) {
-    echo $subscription->url.' (v'.$subscription->version.')'.PHP_EOL;
+foreach ($client->messenger()->getSubscriptions()->subscriptions as $subscription) {
+    echo "{$subscription->url} (v{$subscription->version})".PHP_EOL;
 }
 
-$client->messenger()->unsubscribeWebhook('https://example.com/avito/webhook');
+$client->messenger()->unsubscribeWebhook(route('avito.webhook'));
 ```
 
-> **Note:** since November 2025 Avito requires a paid messenger subscription for reading and sending chat messages — without it the API responds with error `402` ("Перейдите на подписку с API мессенджера"). Chat lists, chat info and webhook management remain available without a subscription.
+Avito will send a `POST` request to your URL for every new message, so you can react in real time instead of polling.
+
+### Account balance and spending
+
+```php
+$history = $client->user()->getOperationsHistory(
+    now()->subWeek()->toIso8601String(),
+    now()->toIso8601String(),
+);
+
+$spent = $history->operations->sum('amountTotal');
+```
+
+## Authentication and token storage
+
+The package uses the OAuth 2.0 `client_credentials` flow:
+
+1. On first use the client requests a token from `POST /token` with your `client_id` and `client_secret`.
+2. The token is cached in the configured storage, so requests don't fetch a new token every time.
+3. If Avito answers `401` or `403`, the token is refreshed once and the request is retried.
+
+| Storage | Where the token lives |
+|---|---|
+| `file` | `storage/app/avito_module/{TOKEN_FILE_NAME}.json`, keyed by a hash of your credentials |
+| `database` | `avito_module_clients` table (credentials are stored as hashes) |
+
+To use your own storage (Redis, cache, encrypted column…), implement `Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface` and bind it in a service provider:
+
+```php
+use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
+
+$this->app->singleton(TokenStorageInterface::class, RedisTokenStorage::class);
+```
+
+## Error handling
+
+| Exception | When |
+|---|---|
+| `Domain\Exceptions\ClientCredentialsException` | `AVITO_CLIENT_ID` or `AVITO_SECRET` is not set |
+| `Domain\Exceptions\TokenValidException` | The token is still rejected after a refresh |
+| `Domain\Exceptions\ClientResponseException` | Any other API error (4xx/5xx, or an `error` field in the response); the message contains the raw response body |
+
+```php
+use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
+
+try {
+    $client->messenger()->sendMessage($userId, $chatId, 'Hello!');
+} catch (ClientResponseException $e) {
+    report($e);
+}
+```
+
+## Testing
+
+The test suite runs against the real Avito API, so it needs valid credentials in the environment: `AVITO_CLIENT_ID` and `AVITO_SECRET` (see `.env.testing.example`). The messenger tests also use `DEMO_SENDER` (your Avito user ID) and `DEMO_CHAT_ID` (a chat to write to).
+
+```bash
+composer install
+./vendor/bin/pest
+```
+
+Static analysis and code style:
+
+```bash
+./vendor/bin/phpstan analyse
+./vendor/bin/pint
+```
+
+## Roadmap
+
+- [x] Authorization (`client_credentials`) with automatic refresh
+- [x] Account: profile, balance, operation history
+- [x] Messenger: all 13 methods
+- [ ] Items: listings, statuses, prices, VAS
+- [ ] Autoload: reports and upload status
+- [ ] Statistics: views, contacts, favorites
+- [ ] Ratings and reviews
+- [ ] Webhook payload DTOs and a ready-made controller
+
+Need one of these sooner? Open an issue — or a pull request.
+
+## Contributing
+
+Pull requests are welcome. Please:
+
+1. Fork the repository and create a branch from `main`.
+2. Add or update tests for your change.
+3. Run `./vendor/bin/pint` and `./vendor/bin/phpstan analyse` before pushing.
+
+Found a bug or missing endpoint? [Open an issue](https://github.com/Voyanara/avito-laravel-client/issues).
+
+If this package saves you time, please give it a ⭐ — it helps other developers find it.
+
+## License
+
+The MIT License (MIT). See [LICENSE](LICENSE) for details.

@@ -1,9 +1,13 @@
 {
     "name": "voyanara/avito-laravel-client",
-    "description": "A Laravel package for integrating with the Avito API, allowing seamless interaction with Avito features and data from your Laravel application.",
+    "description": "Typed Laravel SDK for the Avito API (Авито): messenger, webhooks, account balance and operations, with automatic OAuth token handling.",
     "type": "library",
-    "keywords": ["laravel","avito","api", "client", "HTTP client", "php"
-    ],
+    "keywords": ["laravel", "avito", "avito-api", "avito-messenger", "авито", "api-client", "sdk", "laravel-package", "webhooks", "php"],
+    "homepage": "https://github.com/Voyanara/avito-laravel-client",
+    "support": {
+        "issues": "https://github.com/Voyanara/avito-laravel-client/issues",
+        "source": "https://github.com/Voyanara/avito-laravel-client"
+    },
     "require": {
         "php": "^8.3",
         "spatie/laravel-data": "^4.11",
