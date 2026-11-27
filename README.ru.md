@@ -17,7 +17,7 @@
 
 # Avito Laravel Client
 
-Типизированный Laravel SDK для [API Авито](https://www.avito.ru/developers/): отвечайте клиентам в мессенджере Авито, управляйте вебхуками, получайте данные аккаунта, баланс и историю операций. OAuth-токен пакет получает и обновляет сам, а ответы приходят в виде неизменяемых DTO на базе [spatie/laravel-data](https://github.com/spatie/laravel-data).
+Типизированный Laravel SDK для [API Авито](https://www.avito.ru/developers/): отвечайте клиентам в мессенджере Авито, управляйте вебхуками, объявлениями, ценами и продвижением, получайте статистику объявлений и расходов, данные аккаунта, баланс и историю операций. OAuth-токен пакет получает и обновляет сам, а ответы приходят в виде неизменяемых DTO на базе [spatie/laravel-data](https://github.com/spatie/laravel-data).
 
 ```php
 $me = AvitoClient::user()->self();
@@ -50,6 +50,7 @@ foreach ($chats->chats as $chat) {
 ## Возможности
 
 - **Полное покрытие API мессенджера** — все 13 методов: чаты, сообщения, изображения, голосовые, чёрный список, вебхуки.
+- **Полное покрытие API объявлений** — все 11 методов: объявления, цены, услуги продвижения, статистика объявлений, показатели профиля, расходы и звонки.
 - **API аккаунта** — профиль, баланс и история операций.
 - **Авторизация без настройки** — токен `client_credentials` запрашивается при первом обращении, кешируется и автоматически обновляется, если Авито вернул `401`/`403`.
 - **Сменное хранилище токена** — файл (по умолчанию), база данных или своя реализация `TokenStorageInterface`.
@@ -113,10 +114,11 @@ TOKEN_FILE_NAME=avito-token       # хранилище file: storage/app/avito_m
 
 ## Использование
 
-Точка входа — класс `Voyanara\LaravelApiClient\Application\Facades\Client`, у него две группы методов:
+Точка входа — класс `Voyanara\LaravelApiClient\Application\Facades\Client`, у него три группы методов:
 
 - `->user()` — API аккаунта;
-- `->messenger()` — API мессенджера.
+- `->messenger()` — API мессенджера;
+- `->items()` — API объявлений (объявления, продвижение, статистика).
 
 ### Внедрение зависимостей (рекомендуется)
 
@@ -179,6 +181,24 @@ echo "Основной: {$balance->real} ₽, бонусный: {$balance->bonus
 > [!IMPORTANT]
 > С ноября 2025 года для чтения и отправки сообщений Авито требует платную подписку с доступом к API мессенджера. Без неё API отвечает ошибкой `402` («Перейдите на подписку с API мессенджера»). Список чатов, информация о чате и управление вебхуками остаются доступны.
 
+### Объявления — `$client->items()`
+
+Полное покрытие [API объявлений Авито](https://www.avito.ru/developers/api-catalog/item/documentation). Фиксированные наборы значений — backed enums в `Voyanara\LaravelApiClient\Domain\Enums\Items`; даты принимают `DateTimeInterface` (например, Carbon) или строку `YYYY-MM-DD`.
+
+| Метод | Описание | Scope |
+|---|---|---|
+| `getItems(int $perPage = 25, int $page = 1, array $statuses = [], DateTimeInterface\|string\|null $updatedAtFrom = null, ?int $category = null)` | Ваши объявления: статус, категория, цена и ссылка (фильтр `ItemStatusEnum`) | `items:info` |
+| `getItemInfo(int $userId, int $itemId)` | Одно объявление: статус, даты, примененные платные услуги | `items:info` |
+| `updatePrice(int $itemId, int $price)` | Обновление цены (Товары, Запчасти, Авто, Недвижимость, кроме краткосрочной) | — |
+| `getVasPrices(int $userId, array $itemIds)` | Стоимость услуг продвижения и доступные значки по объявлениям | `items:info` |
+| `applyVas(int $itemId, array $services, array $stickers = [])` | Применение услуг продвижения (`VasServiceEnum`), возвращает идентификаторы операций покупки | `items:apply_vas` |
+| `applyItemVas(int $userId, int $itemId, VasEnum $vas)` | **Устарел в Авито**, используйте `applyVas()` | `items:apply_vas` |
+| `applyItemVasPackage(int $userId, int $itemId, VasPackageEnum $package)` | **Устарел в Авито**, используйте `applyVas()` | `items:apply_vas` |
+| `getItemsStats(int $userId, array $itemIds, $dateFrom, $dateTo, array $fields = [], ?StatsPeriodEnum $periodGrouping = null)` | Просмотры, контакты и избранное по объявлениям (до 200 объявлений, глубина 270 дней) | `stats:read` |
+| `getItemsAnalytics(int $userId, $dateFrom, $dateTo, array $metrics, AnalyticsGroupingEnum $grouping = TOTALS, int $limit = 1000, int $offset = 0, ...)` | Показатели профиля: просмотры, контакты, конверсии, заказы, расходы (1 запрос в минуту) | `stats:read` |
+| `getSpendings(int $userId, $dateFrom, $dateTo, array $spendingTypes = [SpendingTypeEnum::ALL], StatsPeriodEnum $grouping = DAY, ...)` | Расходы профиля по дням, неделям или месяцам (1 запрос в минуту) | `stats:read` |
+| `getCallsStats(int $userId, $dateFrom, $dateTo, array $itemIds = [])` | Звонки по объявлениям в разрезе дней: всего, отвеченные, новые | `items:info` |
+
 ## Рецепты
 
 ### Автоответ на непрочитанные чаты
@@ -238,6 +258,49 @@ $history = $client->user()->getOperationsHistory(
 );
 
 $spent = $history->operations->sum('amountTotal');
+```
+
+### Объявления, цены и продвижение
+
+```php
+use Voyanara\LaravelApiClient\Domain\Enums\Items\ItemStatusEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Items\VasServiceEnum;
+
+$items = $client->items()->getItems(perPage: 50, statuses: [ItemStatusEnum::ACTIVE]);
+
+foreach ($items->resources as $item) {
+    echo "{$item->id} {$item->title}: {$item->price} ₽".PHP_EOL;
+}
+
+$client->items()->updatePrice($itemId, 14500);
+
+$prices = $client->items()->getVasPrices($userId, [$itemId])->forItem($itemId);
+
+$order = $client->items()->applyVas($itemId, [VasServiceEnum::XL, VasServiceEnum::X10_7]);
+$operationId = $order->operationId(VasServiceEnum::XL);
+```
+
+### Статистика объявлений
+
+```php
+use Voyanara\LaravelApiClient\Domain\Enums\Items\AnalyticsGroupingEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Items\StatsPeriodEnum;
+
+$stats = $client->items()->getItemsStats($userId, [$itemId], now()->subDays(30), now(), periodGrouping: StatsPeriodEnum::WEEK);
+
+$views = $stats->forItem($itemId)?->stats->sum('uniqViews');
+
+$analytics = $client->items()->getItemsAnalytics(
+    $userId,
+    now()->subDays(30),
+    now(),
+    metrics: ['views', 'contacts', 'favorites'],
+    grouping: AnalyticsGroupingEnum::ITEM,
+);
+
+foreach ($analytics->groupings as $row) {
+    echo "{$row->id}: {$row->metric('views')} просмотров, {$row->metric('contacts')} контактов".PHP_EOL;
+}
 ```
 
 ## Авторизация и хранение токена
@@ -310,7 +373,7 @@ GitHub Actions прогоняет Pint, PHPStan и офлайн-тесты на 
 - [x] [Авторизация](https://www.avito.ru/developers/api-catalog/auth/documentation)
 - [x] [Информация о пользователе](https://www.avito.ru/developers/api-catalog/user/documentation)
 - [x] [Мессенджер](https://www.avito.ru/developers/api-catalog/messenger/documentation)
-- [ ] [Объявления](https://www.avito.ru/developers/api-catalog/item/documentation)
+- [x] [Объявления](https://www.avito.ru/developers/api-catalog/item/documentation)
 - [ ] [Рейтинги и отзывы](https://www.avito.ru/developers/api-catalog/ratings/documentation)
 - [ ] [Автозагрузка](https://www.avito.ru/developers/api-catalog/autoload/documentation)
 

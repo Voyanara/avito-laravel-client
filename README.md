@@ -17,7 +17,7 @@
 
 # Avito Laravel Client
 
-A typed Laravel SDK for the [Avito API](https://www.avito.ru/developers/) (Авито): reply to customers in Avito Messenger, manage webhooks, and read account info, balance and operation history — with automatic OAuth token handling and immutable DTO responses built on [spatie/laravel-data](https://github.com/spatie/laravel-data).
+A typed Laravel SDK for the [Avito API](https://www.avito.ru/developers/) (Авито): reply to customers in Avito Messenger, manage webhooks, manage listings, prices and promotion, read listing statistics and spendings, account info, balance and operation history — with automatic OAuth token handling and immutable DTO responses built on [spatie/laravel-data](https://github.com/spatie/laravel-data).
 
 ```php
 $me = AvitoClient::user()->self();
@@ -50,6 +50,7 @@ foreach ($chats->chats as $chat) {
 ## Features
 
 - **Full Messenger API coverage** — all 13 methods: chats, messages, images, voice messages, blacklist, webhooks.
+- **Full Items API coverage** — all 11 methods: listings, prices, promotion services, listing statistics, profile analytics, spendings and calls.
 - **Account API** — profile, balance and operation history.
 - **Zero-config auth** — the `client_credentials` token is fetched on first use, cached and refreshed automatically when Avito returns `401`/`403`.
 - **Pluggable token storage** — file (default) or database, or your own implementation of `TokenStorageInterface`.
@@ -113,10 +114,11 @@ TOKEN_FILE_NAME=avito-token       # file storage: storage/app/avito_module/avito
 
 ## Usage
 
-The entry point is `Voyanara\LaravelApiClient\Application\Facades\Client`, which exposes two groups of methods:
+The entry point is `Voyanara\LaravelApiClient\Application\Facades\Client`, which exposes three groups of methods:
 
 - `->user()` — account API
 - `->messenger()` — Messenger API
+- `->items()` — Items API (listings, promotion, statistics)
 
 ### Dependency injection (recommended)
 
@@ -179,6 +181,24 @@ Full coverage of the [Avito Messenger API](https://www.avito.ru/developers/api-c
 > [!IMPORTANT]
 > Since November 2025 Avito requires a paid subscription with Messenger API access to read and send chat messages. Without it the API responds with `402` ("Перейдите на подписку с API мессенджера"). Chat lists, chat info and webhook management remain available.
 
+### Items — `$client->items()`
+
+Full coverage of the [Avito Items API](https://www.avito.ru/developers/api-catalog/item/documentation). Fixed value sets are backed enums in `Voyanara\LaravelApiClient\Domain\Enums\Items`; dates accept `DateTimeInterface` (e.g. Carbon) or a `YYYY-MM-DD` string.
+
+| Method | Description | Scope |
+|---|---|---|
+| `getItems(int $perPage = 25, int $page = 1, array $statuses = [], DateTimeInterface\|string\|null $updatedAtFrom = null, ?int $category = null)` | Your listings: status, category, price and URL (`ItemStatusEnum` filter) | `items:info` |
+| `getItemInfo(int $userId, int $itemId)` | One listing: status, dates, applied paid services | `items:info` |
+| `updatePrice(int $itemId, int $price)` | Update the price (Goods, Spare parts, Auto, Real estate except short-term rent) | — |
+| `getVasPrices(int $userId, array $itemIds)` | Promotion service prices and available stickers per listing | `items:info` |
+| `applyVas(int $itemId, array $services, array $stickers = [])` | Apply promotion services (`VasServiceEnum`), returns purchase operation IDs | `items:apply_vas` |
+| `applyItemVas(int $userId, int $itemId, VasEnum $vas)` | **Deprecated by Avito**, use `applyVas()` | `items:apply_vas` |
+| `applyItemVasPackage(int $userId, int $itemId, VasPackageEnum $package)` | **Deprecated by Avito**, use `applyVas()` | `items:apply_vas` |
+| `getItemsStats(int $userId, array $itemIds, $dateFrom, $dateTo, array $fields = [], ?StatsPeriodEnum $periodGrouping = null)` | Views, contacts and favorites per listing (up to 200 listings, 270 days) | `stats:read` |
+| `getItemsAnalytics(int $userId, $dateFrom, $dateTo, array $metrics, AnalyticsGroupingEnum $grouping = TOTALS, int $limit = 1000, int $offset = 0, ...)` | Profile analytics: views, contacts, conversions, orders, spendings (1 request per minute) | `stats:read` |
+| `getSpendings(int $userId, $dateFrom, $dateTo, array $spendingTypes = [SpendingTypeEnum::ALL], StatsPeriodEnum $grouping = DAY, ...)` | Profile spendings by day, week or month (1 request per minute) | `stats:read` |
+| `getCallsStats(int $userId, $dateFrom, $dateTo, array $itemIds = [])` | Calls per listing by day: total, answered, new | `items:info` |
+
 ## Recipes
 
 ### Auto-reply to unread chats
@@ -238,6 +258,49 @@ $history = $client->user()->getOperationsHistory(
 );
 
 $spent = $history->operations->sum('amountTotal');
+```
+
+### Listings, prices and promotion
+
+```php
+use Voyanara\LaravelApiClient\Domain\Enums\Items\ItemStatusEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Items\VasServiceEnum;
+
+$items = $client->items()->getItems(perPage: 50, statuses: [ItemStatusEnum::ACTIVE]);
+
+foreach ($items->resources as $item) {
+    echo "{$item->id} {$item->title}: {$item->price} ₽".PHP_EOL;
+}
+
+$client->items()->updatePrice($itemId, 14500);
+
+$prices = $client->items()->getVasPrices($userId, [$itemId])->forItem($itemId);
+
+$order = $client->items()->applyVas($itemId, [VasServiceEnum::XL, VasServiceEnum::X10_7]);
+$operationId = $order->operationId(VasServiceEnum::XL);
+```
+
+### Listing statistics
+
+```php
+use Voyanara\LaravelApiClient\Domain\Enums\Items\AnalyticsGroupingEnum;
+use Voyanara\LaravelApiClient\Domain\Enums\Items\StatsPeriodEnum;
+
+$stats = $client->items()->getItemsStats($userId, [$itemId], now()->subDays(30), now(), periodGrouping: StatsPeriodEnum::WEEK);
+
+$views = $stats->forItem($itemId)?->stats->sum('uniqViews');
+
+$analytics = $client->items()->getItemsAnalytics(
+    $userId,
+    now()->subDays(30),
+    now(),
+    metrics: ['views', 'contacts', 'favorites'],
+    grouping: AnalyticsGroupingEnum::ITEM,
+);
+
+foreach ($analytics->groupings as $row) {
+    echo "{$row->id}: {$row->metric('views')} views, {$row->metric('contacts')} contacts".PHP_EOL;
+}
 ```
 
 ## Authentication and token storage
@@ -310,7 +373,7 @@ GitHub Actions runs Pint, PHPStan and the offline tests on PHP 8.3 / 8.4 / 8.5 �
 - [x] [Authorization](https://www.avito.ru/developers/api-catalog/auth/documentation)
 - [x] [User information](https://www.avito.ru/developers/api-catalog/user/documentation)
 - [x] [Messenger](https://www.avito.ru/developers/api-catalog/messenger/documentation)
-- [ ] [Items](https://www.avito.ru/developers/api-catalog/item/documentation)
+- [x] [Items](https://www.avito.ru/developers/api-catalog/item/documentation)
 - [ ] [Ratings and reviews](https://www.avito.ru/developers/api-catalog/ratings/documentation)
 - [ ] [Autoload](https://www.avito.ru/developers/api-catalog/autoload/documentation)
 

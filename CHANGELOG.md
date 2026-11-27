@@ -10,6 +10,15 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+- Items API — `$client->items()`, all 11 methods of the [Avito Items section](https://www.avito.ru/developers/api-catalog/item/documentation): `getItems`, `getItemInfo`, `updatePrice`, `getVasPrices`, `applyVas`, `getItemsStats`, `getItemsAnalytics`, `getSpendings`, `getCallsStats`, and the methods Avito marked as deprecated, `applyItemVas` and `applyItemVasPackage`
+- Backed enums for the fixed value sets of the Items API in `Domain\Enums\Items`: item statuses, promotion services and packages, statistics fields, groupings, spending types, sort order
+- Date parameters of the Items API accept `DateTimeInterface` (e.g. Carbon) as well as `YYYY-MM-DD` strings
+- Offline tests for every Items API method
+
+### Changed
+- `RequestService` sends `PUT` requests with `asJson: true` as JSON, the same way as `POST`
+
 ## [1.3.0] - 2026-11-27
 
 ### Added

@@ -134,7 +134,7 @@ class RequestService
             $headers['Authorization'] = 'Bearer '.$token;
         }
 
-        if ($method === 'POST' && $asJson) {
+        if ($asJson && in_array($method, ['POST', 'PUT'], true)) {
             $response = Http::withHeaders($headers)->{$method}($url, $data);
         } elseif ($method === 'POST' && $withAttach && $attachData) {
             $response = Http::attach($attachData->name, $attachData->content, $attachData->filename)
