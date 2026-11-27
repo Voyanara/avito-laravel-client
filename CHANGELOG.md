@@ -10,6 +10,8 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [1.4.0] - 2026-11-28
+
 ### Added
 - Items API — `$client->items()`, all 11 methods of the [Avito Items section](https://www.avito.ru/developers/api-catalog/item/documentation): `getItems`, `getItemInfo`, `updatePrice`, `getVasPrices`, `applyVas`, `getItemsStats`, `getItemsAnalytics`, `getSpendings`, `getCallsStats`, and the methods Avito marked as deprecated, `applyItemVas` and `applyItemVasPackage`
 - Backed enums for the fixed value sets of the Items API in `Domain\Enums\Items`: item statuses, promotion services and packages, statistics fields, groupings, spending types, sort order
@@ -93,7 +95,8 @@ release workflow publishes this section as the GitHub release notes.
 ### Added
 - First release: authorization, account info, balance, operations history, chats and messages
 
-[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.3.0...HEAD
+[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.0...HEAD
+[1.4.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.1.0...1.2.0
