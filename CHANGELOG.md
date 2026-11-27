@@ -10,6 +10,8 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [1.3.0] - 2026-11-27
+
 ### Added
 - Offline test suite (`tests/Unit`, 33 tests) with a faked Avito API: all Messenger and account methods, token handling, error handling and both token storages
 - GitHub Actions: Pint, PHPStan and tests on PHP 8.3 / 8.4 / 8.5 × Laravel 12 / 13 for every push and pull request
@@ -82,7 +84,8 @@ release workflow publishes this section as the GitHub release notes.
 ### Added
 - First release: authorization, account info, balance, operations history, chats and messages
 
-[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.1...HEAD
+[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.3.0...HEAD
+[1.3.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.0...1.2.1
 [1.2.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.1.0...1.2.0
 [1.1.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.0.10...1.1.0
