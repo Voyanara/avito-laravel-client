@@ -7,7 +7,7 @@
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/v/voyanara/avito-laravel-client.svg?style=flat-square&label=packagist" alt="Последняя версия на Packagist"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/dt/voyanara/avito-laravel-client.svg?style=flat-square" alt="Загрузки"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/php-v/voyanara/avito-laravel-client.svg?style=flat-square" alt="Версия PHP"></a>
-  <img src="https://img.shields.io/badge/Laravel-11%20|%2012%20|%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 11 | 12 | 13">
+  <img src="https://img.shields.io/badge/Laravel-12%20|%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12 | 13">
   <a href="LICENSE"><img src="https://img.shields.io/packagist/l/voyanara/avito-laravel-client.svg?style=flat-square" alt="Лицензия"></a>
 </p>
 
@@ -60,7 +60,11 @@ foreach ($chats->chats as $chat) {
 
 | Версия пакета | PHP | Laravel |
 |---|---|---|
+| `1.3.x` | 8.3 · 8.4 · 8.5 | 12 · 13 |
 | `1.2.x` | 8.3 · 8.4 · 8.5 | 11 · 12 · 13 |
+
+> [!NOTE]
+> Laravel 11 больше не поддерживается командой Laravel, а свежие версии Composer отказываются его устанавливать из-за неисправленных уязвимостей. Если вы ещё на Laravel 11, используйте `1.2.x`: `composer require voyanara/avito-laravel-client:^1.2`.
 
 Также нужен аккаунт Авито с доступом к API и пара `client_id` / `client_secret` из [кабинета разработчика Авито](https://developers.avito.ru/).
 
@@ -299,7 +303,7 @@ composer analyse   # PHPStan
 composer lint      # Pint (только проверка; исправить: ./vendor/bin/pint)
 ```
 
-GitHub Actions прогоняет Pint, PHPStan и офлайн-тесты на PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 при каждом push и pull request.
+GitHub Actions прогоняет Pint, PHPStan и офлайн-тесты на PHP 8.3 / 8.4 / 8.5 × Laravel 12 / 13 при каждом push и pull request.
 
 ## Дорожная карта
 

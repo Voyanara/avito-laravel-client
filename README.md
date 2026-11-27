@@ -7,7 +7,7 @@
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/v/voyanara/avito-laravel-client.svg?style=flat-square&label=packagist" alt="Latest Version on Packagist"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/dt/voyanara/avito-laravel-client.svg?style=flat-square" alt="Total Downloads"></a>
   <a href="https://packagist.org/packages/voyanara/avito-laravel-client"><img src="https://img.shields.io/packagist/php-v/voyanara/avito-laravel-client.svg?style=flat-square" alt="PHP Version"></a>
-  <img src="https://img.shields.io/badge/Laravel-11%20|%2012%20|%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 11 | 12 | 13">
+  <img src="https://img.shields.io/badge/Laravel-12%20|%2013-FF2D20?style=flat-square&logo=laravel&logoColor=white" alt="Laravel 12 | 13">
   <a href="LICENSE"><img src="https://img.shields.io/packagist/l/voyanara/avito-laravel-client.svg?style=flat-square" alt="License"></a>
 </p>
 
@@ -60,7 +60,11 @@ foreach ($chats->chats as $chat) {
 
 | Package version | PHP | Laravel |
 |---|---|---|
+| `1.3.x` | 8.3 · 8.4 · 8.5 | 12 · 13 |
 | `1.2.x` | 8.3 · 8.4 · 8.5 | 11 · 12 · 13 |
+
+> [!NOTE]
+> Laravel 11 is no longer supported by the Laravel team, and recent Composer versions refuse to install it because of unpatched security advisories. If you are still on Laravel 11, use `1.2.x`: `composer require voyanara/avito-laravel-client:^1.2`.
 
 You also need an Avito account with API access and a `client_id` / `client_secret` pair from the [Avito developer portal](https://developers.avito.ru/).
 
@@ -299,7 +303,7 @@ composer analyse   # PHPStan
 composer lint      # Pint (check only; run ./vendor/bin/pint to fix)
 ```
 
-GitHub Actions runs Pint, PHPStan and the offline tests on PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 for every push and pull request.
+GitHub Actions runs Pint, PHPStan and the offline tests on PHP 8.3 / 8.4 / 8.5 × Laravel 12 / 13 for every push and pull request.
 
 ## Roadmap
 

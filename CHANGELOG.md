@@ -12,7 +12,7 @@ release workflow publishes this section as the GitHub release notes.
 
 ### Added
 - Offline test suite (`tests/Unit`, 33 tests) with a faked Avito API: all Messenger and account methods, token handling, error handling and both token storages
-- GitHub Actions: Pint, PHPStan and tests on PHP 8.3 / 8.4 / 8.5 × Laravel 11 / 12 / 13 for every push and pull request
+- GitHub Actions: Pint, PHPStan and tests on PHP 8.3 / 8.4 / 8.5 × Laravel 12 / 13 for every push and pull request
 - Automatic GitHub releases when a tag is pushed, with notes taken from this changelog
 - Composer scripts: `composer test`, `composer test:live`, `composer lint`, `composer analyse`
 
@@ -20,6 +20,9 @@ release workflow publishes this section as the GitHub release notes.
 - Live tests (`tests/Application`) moved to a separate `Live` suite: `composer test:live`
 - Live tests are skipped instead of failing when credentials, `DEMO_*` variables or chats are missing
 - `.env.testing.example` lists every variable the live tests use
+
+### Removed
+- Laravel 11 support. Laravel 11 no longer receives security fixes, and recent Composer versions refuse to install it because of unpatched security advisories. Projects on Laravel 11 can keep using `1.2.x`
 
 ### Fixed
 - Live operations history test requested data older than one year, which Avito rejects
