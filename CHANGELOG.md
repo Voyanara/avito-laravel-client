@@ -10,6 +10,8 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [1.4.1] - 2026-11-28
+
 ### Added
 - `ChatTypeEnum` (`u2i`, `u2u`, `a2u`) for the `chatTypes` filter of `getChats()` and `BlacklistReasonEnum` (1–4) for the `reasonId` of `addUserToBlacklist()`. Plain strings and integers are still accepted
 
@@ -101,7 +103,8 @@ release workflow publishes this section as the GitHub release notes.
 ### Added
 - First release: authorization, account info, balance, operations history, chats and messages
 
-[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.0...HEAD
+[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.1...HEAD
+[1.4.1]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.1...1.3.0
 [1.2.1]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.0...1.2.1
