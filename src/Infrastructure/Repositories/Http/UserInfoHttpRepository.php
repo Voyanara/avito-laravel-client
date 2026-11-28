@@ -18,7 +18,7 @@ class UserInfoHttpRepository extends BaseHttpRepository
     public function getUserInfo(): UserInfoSelfResponse
     {
         $url = $this->apiUrl.'/core/v1/accounts/self';
-        $response = $this->requestService->sendRequest($url, token: $this->token);
+        $response = $this->requestService->sendRequest($url);
 
         return UserInfoSelfResponse::from($response);
     }
@@ -34,7 +34,7 @@ class UserInfoHttpRepository extends BaseHttpRepository
             'dateTimeFrom' => $dateFrom,
             'dateTimeTo' => $dateTo,
         ];
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         $operations = $response['result'] ?? [];
 
@@ -51,7 +51,7 @@ class UserInfoHttpRepository extends BaseHttpRepository
         $data = [
             'user_id' => $userId,
         ];
-        $response = $this->requestService->sendRequest($url, data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, data: $data, asJson: true);
 
         return UserInfoBalanceResponse::from($response);
     }

@@ -51,7 +51,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             'category' => $category,
         ]);
 
-        $response = $this->requestService->sendRequest($url, data: $data, token: $this->token);
+        $response = $this->requestService->sendRequest($url, data: $data);
 
         return ItemsListResponse::from($response + ['resources' => []]);
     }
@@ -64,7 +64,7 @@ class ItemsHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/core/v1/accounts/'.$userId.'/items/'.$itemId.'/';
 
-        return ItemInfoResponse::from($this->requestService->sendRequest($url, token: $this->token));
+        return ItemInfoResponse::from($this->requestService->sendRequest($url));
     }
 
     /**
@@ -75,7 +75,7 @@ class ItemsHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/core/v1/items/'.$itemId.'/update_price';
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: ['price' => $price], token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: ['price' => $price], asJson: true);
 
         return (bool) ($response['result']['success'] ?? false);
     }
@@ -90,7 +90,7 @@ class ItemsHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/core/v1/accounts/'.$userId.'/vas/prices';
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: ['itemIds' => array_values($itemIds)], token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: ['itemIds' => array_values($itemIds)], asJson: true);
 
         return VasPricesResponse::from(['items' => $response]);
     }
@@ -103,7 +103,7 @@ class ItemsHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/core/v1/accounts/'.$userId.'/items/'.$itemId.'/vas';
 
-        $response = $this->requestService->sendRequest($url, method: 'PUT', data: ['vas_id' => $vas->value], token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'PUT', data: ['vas_id' => $vas->value], asJson: true);
 
         return ApplyItemVasResponse::from($response);
     }
@@ -116,7 +116,7 @@ class ItemsHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/core/v2/accounts/'.$userId.'/items/'.$itemId.'/vas_packages';
 
-        $response = $this->requestService->sendRequest($url, method: 'PUT', data: ['package_id' => $package->value], token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'PUT', data: ['package_id' => $package->value], asJson: true);
 
         return ApplyVasPackageResponse::from($response);
     }
@@ -137,7 +137,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             'stickers' => $stickers !== [] ? array_values($stickers) : null,
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'PUT', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'PUT', data: $data, asJson: true);
 
         return ApplyVasResponse::from([
             'operations' => array_map(static fn (array $operation): int => (int) $operation['operationId'], $response),
@@ -169,7 +169,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             'periodGrouping' => $periodGrouping?->value,
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return ItemsStatsResponse::from([
             'items' => $response['result']['items'] ?? [],
@@ -215,7 +215,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             'sort' => $sortKey !== null ? ['key' => $sortKey, 'order' => $sortOrder->value] : null,
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return ItemsAnalyticsResponse::from(($response['result'] ?? []) + ['groupings' => []]);
     }
@@ -253,7 +253,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             ]),
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return SpendingsResponse::from($response['result'] ?? []);
     }
@@ -278,7 +278,7 @@ class ItemsHttpRepository extends BaseHttpRepository
             'itemIds' => $itemIds !== [] ? array_values($itemIds) : null,
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return CallsStatsResponse::from(['items' => $response['result']['items'] ?? []]);
     }

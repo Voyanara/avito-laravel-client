@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories\Http;
 
+use InvalidArgumentException;
 use Voyanara\LaravelApiClient\Application\DTO\Messenger\MessengerChatItemDTO;
 use Voyanara\LaravelApiClient\Domain\Enums\Messenger\BlacklistReasonEnum;
 use Voyanara\LaravelApiClient\Domain\Enums\Messenger\ChatTypeEnum;
@@ -37,7 +38,7 @@ class MessengerHttpRepository extends BaseHttpRepository
 
         $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/chats';
 
-        return ChatsInfoResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
+        return ChatsInfoResponse::from($this->requestService->sendRequest($url, data: $data));
     }
 
     /**
@@ -52,7 +53,7 @@ class MessengerHttpRepository extends BaseHttpRepository
         ]);
         $url = $this->apiUrl.'/messenger/v3/accounts/'.$userId.'/chats/'.$chatId.'/messages';
 
-        return MessagesListResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
+        return MessagesListResponse::from($this->requestService->sendRequest($url, data: $data));
     }
 
     /**
@@ -63,7 +64,7 @@ class MessengerHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/messenger/v2/accounts/'.$userId.'/chats/'.$chatId;
 
-        $response = $this->requestService->sendRequest($url, token: $this->token);
+        $response = $this->requestService->sendRequest($url);
 
         return MessengerChatItemDTO::from($response);
     }
@@ -83,7 +84,7 @@ class MessengerHttpRepository extends BaseHttpRepository
             'type' => $type,
         ];
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return SendMessageResponse::from($response);
     }
@@ -95,25 +96,33 @@ class MessengerHttpRepository extends BaseHttpRepository
     public function readChat(int $userId, string $chatId): true
     {
         $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/chats/'.$chatId.'/read';
-        $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+        $this->requestService->sendRequest($url, method: 'POST', asJson: true);
 
         return true;
     }
 
     /**
+     * @throws InvalidArgumentException When the file does not exist or cannot be read
      * @throws ClientResponseException
      * @throws TokenValidException
      */
     public function uploadImage(int $userId, string $filePath): UploadImageResponse
     {
+        // Checked before reading: file_get_contents() only warns and returns false.
+        $content = is_file($filePath) && is_readable($filePath) ? file_get_contents($filePath) : false;
+
+        if ($content === false) {
+            throw new InvalidArgumentException('Image file not found or not readable: '.$filePath);
+        }
+
         $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/uploadImages';
         $attach = RequestAttachVO::from([
             'name' => 'uploadfile[]',
-            'content' => file_get_contents($filePath),
+            'content' => $content,
             'filename' => basename($filePath),
         ]);
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', token: $this->token, withAttach: true, attachData: $attach);
+        $response = $this->requestService->sendRequest($url, method: 'POST', withAttach: true, attachData: $attach);
 
         return UploadImageResponse::from(['id' => array_key_first($response), 'images' => $response[array_key_first($response)]]);
     }
@@ -130,7 +139,7 @@ class MessengerHttpRepository extends BaseHttpRepository
             'image_id' => $imageId,
         ];
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return SendMessageResponse::from($response);
     }
@@ -142,7 +151,7 @@ class MessengerHttpRepository extends BaseHttpRepository
     public function deleteMessage(int $userId, string $chatId, string $messageId): true
     {
         $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/chats/'.$chatId.'/messages/'.$messageId;
-        $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+        $this->requestService->sendRequest($url, method: 'POST', asJson: true);
 
         return true;
     }
@@ -161,7 +170,7 @@ class MessengerHttpRepository extends BaseHttpRepository
             'voice_ids' => implode(',', $voiceIds),
         ];
 
-        return VoiceFilesResponse::from($this->requestService->sendRequest($url, data: $data, token: $this->token));
+        return VoiceFilesResponse::from($this->requestService->sendRequest($url, data: $data));
     }
 
     /**
@@ -186,7 +195,7 @@ class MessengerHttpRepository extends BaseHttpRepository
             ],
         ];
 
-        $this->requestService->sendRequest($url, method: 'POST', data: $data, token: $this->token, asJson: true);
+        $this->requestService->sendRequest($url, method: 'POST', data: $data, asJson: true);
 
         return true;
     }
@@ -201,7 +210,6 @@ class MessengerHttpRepository extends BaseHttpRepository
             $this->apiUrl.'/messenger/v3/webhook',
             method: 'POST',
             data: ['url' => $url],
-            token: $this->token,
             asJson: true
         );
 
@@ -218,7 +226,6 @@ class MessengerHttpRepository extends BaseHttpRepository
             $this->apiUrl.'/messenger/v1/webhook/unsubscribe',
             method: 'POST',
             data: ['url' => $url],
-            token: $this->token,
             asJson: true
         );
 
@@ -233,7 +240,7 @@ class MessengerHttpRepository extends BaseHttpRepository
     {
         $url = $this->apiUrl.'/messenger/v1/subscriptions';
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', token: $this->token, asJson: true);
+        $response = $this->requestService->sendRequest($url, method: 'POST', asJson: true);
 
         return WebhookSubscriptionsResponse::from($response);
     }

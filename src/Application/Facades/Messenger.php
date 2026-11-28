@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Application\Facades;
 
+use InvalidArgumentException;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\AddUserToBlacklistAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\DeleteMessageAction;
 use Voyanara\LaravelApiClient\Application\Actions\Messenger\GetChatInfoAction;
@@ -236,6 +237,7 @@ readonly class Messenger
      * @param  int  $userId  Идентификатор пользователя
      * @param  string  $filePath  Путь к файлу изображения для загрузки
      *
+     * @throws InvalidArgumentException Файл не найден или не читается
      * @throws ClientResponseException
      * @throws TokenValidException
      *

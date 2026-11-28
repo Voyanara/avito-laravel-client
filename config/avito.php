@@ -64,4 +64,31 @@ return [
     | Example: 'my-app-avito-token' (stored as my-app-avito-token.json)
     */
     'file_name' => env('TOKEN_FILE_NAME', 'avito-token'),
+    /*
+    |--------------------------------------------------------------------------
+    | Rate Limit Retries
+    |--------------------------------------------------------------------------
+    | When Avito answers 429 (rate limit exceeded), GET requests are repeated
+    | up to 'times' times, waiting for the Retry-After header (1 second when
+    | it is missing). If Avito asks to wait longer than 'max_wait' seconds,
+    | TooManyRequestsException is thrown right away. POST and PUT requests
+    | are never repeated: a failed request may still have been applied
+    | (a message sent, a promotion service bought).
+    |
+    | Set AVITO_RETRY_TIMES=0 to disable retries.
+    */
+    'retry' => [
+        'times' => (int) env('AVITO_RETRY_TIMES', 1),
+        'max_wait' => (int) env('AVITO_RETRY_MAX_WAIT', 5),
+    ],
+    /*
+    |--------------------------------------------------------------------------
+    | HTTP Timeouts
+    |--------------------------------------------------------------------------
+    | How many seconds to wait for Avito to respond ('timeout') and to
+    | establish the connection ('connect_timeout'). The defaults are the
+    | same as Laravel's HTTP client defaults.
+    */
+    'timeout' => (int) env('AVITO_TIMEOUT', 30),
+    'connect_timeout' => (int) env('AVITO_CONNECT_TIMEOUT', 10),
 ];

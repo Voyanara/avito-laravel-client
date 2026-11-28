@@ -103,6 +103,10 @@ AVITO_SECRET=your-client-secret
 AVITO_API_URL=https://api.avito.ru
 AVITO_TOKEN_STORAGE=file          # file | database
 TOKEN_FILE_NAME=avito-token       # хранилище file: storage/app/avito_module/avito-token.json
+AVITO_RETRY_TIMES=1               # сколько раз повторить GET-запрос при 429, 0 — не повторять
+AVITO_RETRY_MAX_WAIT=5            # самый долгий Retry-After (секунды), который стоит ждать
+AVITO_TIMEOUT=30                  # сколько секунд ждать ответа
+AVITO_CONNECT_TIMEOUT=10          # сколько секунд ждать соединения
 ```
 
 | Ключ | Переменная окружения | По умолчанию | Описание |
@@ -112,6 +116,10 @@ TOKEN_FILE_NAME=avito-token       # хранилище file: storage/app/avito_m
 | `secret` | `AVITO_SECRET` | — | Client secret приложения |
 | `token_storage` | `AVITO_TOKEN_STORAGE` | `file` | Где кешировать токен: `file` или `database` |
 | `file_name` | `TOKEN_FILE_NAME` | `avito-token` | Имя файла для хранилища `file` (сохраняется в `storage/app/avito_module/{name}.json`) |
+| `retry.times` | `AVITO_RETRY_TIMES` | `1` | Сколько раз повторить GET-запрос, отклонённый с `429`; POST и PUT не повторяются никогда |
+| `retry.max_wait` | `AVITO_RETRY_MAX_WAIT` | `5` | Если `Retry-After` дольше (в секундах), сразу бросается `TooManyRequestsException` |
+| `timeout` | `AVITO_TIMEOUT` | `30` | Сколько секунд ждать ответа Авито |
+| `connect_timeout` | `AVITO_CONNECT_TIMEOUT` | `10` | Сколько секунд ждать соединения с Авито |
 
 ## Использование
 
@@ -310,7 +318,8 @@ foreach ($analytics->groupings as $row) {
 
 1. При первом вызове API клиент запрашивает токен через `POST /token`, передавая `client_id` и `client_secret`. Само получение `Client` из контейнера HTTP-запросов не делает.
 2. Токен кешируется в выбранном хранилище, чтобы не запрашивать новый на каждый запрос.
-3. Если Авито отвечает `401` или `403`, токен один раз обновляется и запрос повторяется. Новый токен используется во всех следующих запросах, в том числе в долгоживущих процессах: воркерах очередей и Octane.
+3. Если Авито отвечает `401` или `403`, запрос один раз повторяется с новым токеном. Если другой репозиторий или процесс уже обновил токен в хранилище, берётся он, и `/token` повторно не вызывается. Токен, полученный меньше минуты назад, не обновляется: Авито отклонил его по другой причине (например, нет нужного scope), и бросается `TokenValidException`.
+4. Все репозитории используют один общий `RequestService`, поэтому новый токен сразу используется во всех следующих запросах, в том числе в долгоживущих процессах: воркерах очередей и Octane.
 
 | Хранилище | Где лежит токен |
 |---|---|
@@ -331,17 +340,33 @@ $this->app->singleton(TokenStorageInterface::class, RedisTokenStorage::class);
 |---|---|
 | `Domain\Exceptions\ClientCredentialsException` | Не заданы `AVITO_CLIENT_ID` или `AVITO_SECRET` |
 | `Domain\Exceptions\TokenValidException` | Токен отклонён (`401`/`403`) даже после обновления; наследует `ClientResponseException` |
+| `Domain\Exceptions\TooManyRequestsException` | Превышен лимит запросов (`429`), и запрос не повторялся (POST/PUT, повторы закончились или `Retry-After` дольше `retry.max_wait`); наследует `ClientResponseException` |
 | `Domain\Exceptions\ClientResponseException` | Любая другая ошибка API (4xx/5xx или поле `error` в ответе); в сообщении — исходное тело ответа |
+
+В каждом `ClientResponseException` есть разобранные детали ошибки:
+
+| Свойство | Значение |
+|---|---|
+| `$e->status` | HTTP-статус (то же возвращает `$e->getCode()`) |
+| `$e->errorCode` | Код ошибки Авито из тела ответа, например `1009` (не хватает денег) у `applyVas()` |
+| `$e->errorMessage` | Текст ошибки Авито из тела ответа |
+| `$e->retryAfter` | Секунды из заголовка `Retry-After`, если он есть |
 
 ```php
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
+use Voyanara\LaravelApiClient\Domain\Exceptions\TooManyRequestsException;
 
 try {
     $client->messenger()->sendMessage($userId, $chatId, 'Здравствуйте!');
+} catch (TooManyRequestsException $e) {
+    $this->release($e->retryAfter ?? 60); // внутри задачи в очереди
 } catch (ClientResponseException $e) {
     report($e);
 }
 ```
+
+> [!WARNING]
+> Не повторяйте вслепую POST/PUT-вызовы вроде `sendMessage()` или `applyVas()`: ошибка не всегда значит, что запрос не выполнился. Авито советует перед повторной покупкой услуги проверить, что её нет в списке применённых.
 
 ## Тесты
 

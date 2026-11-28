@@ -26,11 +26,14 @@ readonly class GetSetTokenAction
     }
 
     /**
+     * Requests a new token from Avito, saves it to the storage and uses it for the following requests.
+     * Avito may revoke the previous token, so a new one must never be dropped.
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      */
     public function getFromExternal(): TokenResponse
     {
-        return $this->tokenHttpRepository->getToken($this->tokenHttpRepository->clientId, $this->tokenHttpRepository->secret);
+        return $this->tokenHttpRepository->requestService->renewToken();
     }
 }

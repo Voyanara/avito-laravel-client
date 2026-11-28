@@ -103,6 +103,10 @@ AVITO_SECRET=your-client-secret
 AVITO_API_URL=https://api.avito.ru
 AVITO_TOKEN_STORAGE=file          # file | database
 TOKEN_FILE_NAME=avito-token       # file storage: storage/app/avito_module/avito-token.json
+AVITO_RETRY_TIMES=1               # repeats of a GET request rejected with 429, 0 to disable
+AVITO_RETRY_MAX_WAIT=5            # longest Retry-After (seconds) worth waiting for
+AVITO_TIMEOUT=30                  # seconds to wait for a response
+AVITO_CONNECT_TIMEOUT=10          # seconds to wait for the connection
 ```
 
 | Key | Env variable | Default | Description |
@@ -112,6 +116,10 @@ TOKEN_FILE_NAME=avito-token       # file storage: storage/app/avito_module/avito
 | `secret` | `AVITO_SECRET` | — | Application client secret |
 | `token_storage` | `AVITO_TOKEN_STORAGE` | `file` | Where the access token is cached: `file` or `database` |
 | `file_name` | `TOKEN_FILE_NAME` | `avito-token` | File name for the `file` storage (saved to `storage/app/avito_module/{name}.json`) |
+| `retry.times` | `AVITO_RETRY_TIMES` | `1` | How many times a GET request rejected with `429` is repeated; POST and PUT are never repeated |
+| `retry.max_wait` | `AVITO_RETRY_MAX_WAIT` | `5` | If `Retry-After` is longer (seconds), `TooManyRequestsException` is thrown without waiting |
+| `timeout` | `AVITO_TIMEOUT` | `30` | Seconds to wait for Avito to respond |
+| `connect_timeout` | `AVITO_CONNECT_TIMEOUT` | `10` | Seconds to wait for the connection to Avito |
 
 ## Usage
 
@@ -310,7 +318,8 @@ The package uses the OAuth 2.0 `client_credentials` flow:
 
 1. On the first API call the client requests a token from `POST /token` with your `client_id` and `client_secret`. Resolving `Client` from the container makes no HTTP requests.
 2. The token is cached in the configured storage, so requests don't fetch a new token every time.
-3. If Avito answers `401` or `403`, the token is refreshed once and the request is retried. The new token is reused for all following requests, including long-running processes such as queue workers and Octane.
+3. If Avito answers `401` or `403`, the request is retried once with a new token. If another repository or process has already refreshed the token in storage, that token is used and `/token` is not called again. A token received less than a minute ago is not refreshed: Avito rejected it for another reason (e.g. a missing scope), and `TokenValidException` is thrown.
+4. All repositories share one `RequestService`, so the new token is reused for all following requests, including long-running processes such as queue workers and Octane.
 
 | Storage | Where the token lives |
 |---|---|
@@ -331,17 +340,33 @@ $this->app->singleton(TokenStorageInterface::class, RedisTokenStorage::class);
 |---|---|
 | `Domain\Exceptions\ClientCredentialsException` | `AVITO_CLIENT_ID` or `AVITO_SECRET` is not set |
 | `Domain\Exceptions\TokenValidException` | The token is still rejected (`401`/`403`) after a refresh; extends `ClientResponseException` |
+| `Domain\Exceptions\TooManyRequestsException` | Rate limit exceeded (`429`) and the request was not repeated (POST/PUT, retries used up, or `Retry-After` longer than `retry.max_wait`); extends `ClientResponseException` |
 | `Domain\Exceptions\ClientResponseException` | Any other API error (4xx/5xx, or an `error` field in the response); the message contains the raw response body |
+
+Every `ClientResponseException` carries the parsed details:
+
+| Property | Value |
+|---|---|
+| `$e->status` | HTTP status code (also `$e->getCode()`) |
+| `$e->errorCode` | Avito error code from the body, e.g. `1009` (not enough money) for `applyVas()` |
+| `$e->errorMessage` | Avito error message from the body |
+| `$e->retryAfter` | Seconds from the `Retry-After` header, if any |
 
 ```php
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
+use Voyanara\LaravelApiClient\Domain\Exceptions\TooManyRequestsException;
 
 try {
     $client->messenger()->sendMessage($userId, $chatId, 'Hello!');
+} catch (TooManyRequestsException $e) {
+    $this->release($e->retryAfter ?? 60); // inside a queued job
 } catch (ClientResponseException $e) {
     report($e);
 }
 ```
+
+> [!WARNING]
+> Don't blindly retry POST/PUT calls such as `sendMessage()` or `applyVas()`: an error does not always mean the request was not applied. Avito recommends checking that a promotion service is not in the applied list before buying it again.
 
 ## Testing
 

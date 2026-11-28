@@ -3,7 +3,6 @@
 namespace Voyanara\LaravelApiClient\Infrastructure\Repositories;
 
 use BackedEnum;
-use Voyanara\LaravelApiClient\Domain\Enums\GrantTypesEnum;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientCredentialsException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\ClientResponseException;
 use Voyanara\LaravelApiClient\Domain\Exceptions\TokenValidException;
@@ -14,7 +13,7 @@ use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 abstract class BaseHttpRepository
 {
     /**
-     * @param  string|null  $token  Not used anymore: the access token is resolved lazily by RequestService.
+     * @param  string|null  $token  Not used: the access token is resolved lazily by RequestService.
      *
      * @throws ClientCredentialsException
      */
@@ -24,6 +23,7 @@ abstract class BaseHttpRepository
         public readonly ?string $secret,
         public readonly TokenStorageInterface $tokenStorage,
         public readonly RequestService $requestService,
+        /** @deprecated Not used since 1.2.1, always null: RequestService manages the token. Will be removed in 2.0. */
         public ?string $token = null,
     ) {
         $this->init();
@@ -50,20 +50,14 @@ abstract class BaseHttpRepository
     }
 
     /**
+     * Requests a new client_credentials token. Does not store it.
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      */
     public function getToken(string $clientId, string $secret): TokenResponse
     {
-        $data = [
-            'grant_type' => GrantTypesEnum::CLIENT_CREDENTIALS->value,
-            'client_id' => $clientId,
-            'client_secret' => $secret,
-        ];
-
-        $response = $this->requestService->sendRequest($this->apiUrl.'/token', 'POST', $data, false);
-
-        return TokenResponse::from($response);
+        return $this->requestService->requestToken($clientId, $secret);
     }
 
     /**

@@ -10,8 +10,26 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+### Added
+- `ClientResponseException` exposes `status` (also `getCode()`), `errorCode`, `errorMessage` and `retryAfter` parsed from the Avito response; the message is still the raw body and the constructor is backward compatible
+- `TooManyRequestsException` (extends `ClientResponseException`) for `429` responses
+- GET requests rejected with `429` are repeated after `Retry-After`: `avito.retry.times` (default 1) and `avito.retry.max_wait` (default 5 s). POST and PUT requests are never repeated
+- HTTP timeouts in the config: `avito.timeout` (`AVITO_TIMEOUT`, default 30 s) and `avito.connect_timeout` (`AVITO_CONNECT_TIMEOUT`, default 10 s)
+- `RequestService::renewToken()`: requests a new token, saves it and uses it for the following requests
+
 ### Changed
+- `GetSetTokenAction::getFromExternal()` now saves the new token to the storage and uses it for the following requests; before, the token was returned only, while Avito may revoke the previous one
+- The service provider registers the repositories from an explicit list instead of scanning the `Repositories/Http` folder (and reading every file) on each application boot. `getClassFromFile()`, `isRepositoryClass()` and `createRepositoryInstance()` are removed from `PackageServiceProvider`; a new repository is added to `getRepositories()`
+- Publishing of the config and the migration (tags `config` and `migrations`) moved into `PackageServiceProvider::boot()`; the unused untagged publishing and migration loading there are removed
+- Repositories no longer pass the unused `token` argument to `RequestService`; `BaseHttpRepository::$token` is deprecated and will be removed in 2.0
+- All repositories share one `RequestService` (singleton), so they use the same access token: after a refresh in one repository the others do not request another one
+- On `401`/`403` the token from storage is tried first if another repository or process has already refreshed it; a token received less than a minute ago is not refreshed again (the error is not an expiry, e.g. a missing scope)
+- `BaseHttpRepository::getToken()` reuses `RequestService::requestToken()` instead of duplicating the token request
+- The `ClientResponseException` constructor is now `final`, because `fromResponse()` creates subclasses with `new static`. Subclasses can still add methods, but a subclass that overrides the constructor must be changed
 - Release workflow updates an existing GitHub release with the same tag (title and notes from this changelog) instead of failing
+
+### Fixed
+- `uploadImage()` with a missing or unreadable file throws `InvalidArgumentException` ("Image file not found or not readable: …") before any HTTP request, instead of a PHP warning from `file_get_contents()`
 
 ## [1.4.1] - 2026-11-28
 
