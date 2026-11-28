@@ -25,4 +25,16 @@ class AvitoClientModel extends Model
         'created_at',
         'updated_at',
     ];
+
+    /**
+     * The access token is encrypted with the application key (APP_KEY).
+     *
+     * @return array<string, string>
+     */
+    protected function casts(): array
+    {
+        return [
+            'access_token' => 'encrypted',
+        ];
+    }
 }

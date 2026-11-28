@@ -2,13 +2,14 @@
 
 namespace Voyanara\LaravelApiClient\Domain\ValueObjects;
 
-use Spatie\LaravelData\Data;
-
-class RequestAttachVO extends Data
+/**
+ * A file sent as multipart form data.
+ */
+final readonly class RequestAttachVO
 {
     public function __construct(
-        public readonly string $name,
-        public readonly string $content,
-        public readonly string $filename,
+        public string $name,
+        public string $content,
+        public string $filename,
     ) {}
 }

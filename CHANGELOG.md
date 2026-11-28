@@ -10,26 +10,41 @@ release workflow publishes this section as the GitHub release notes.
 
 ## [Unreleased]
 
+## [1.5.0] - 2026-11-28
+
 ### Added
-- `ClientResponseException` exposes `status` (also `getCode()`), `errorCode`, `errorMessage` and `retryAfter` parsed from the Avito response; the message is still the raw body and the constructor is backward compatible
+- `ClientResponseException` exposes `status` (also `getCode()`), `errorCode`, `errorMessage` and `retryAfter` parsed from the Avito response; the message is still the raw response body
 - `TooManyRequestsException` (extends `ClientResponseException`) for `429` responses
 - GET requests rejected with `429` are repeated after `Retry-After`: `avito.retry.times` (default 1) and `avito.retry.max_wait` (default 5 s). POST and PUT requests are never repeated
 - HTTP timeouts in the config: `avito.timeout` (`AVITO_TIMEOUT`, default 30 s) and `avito.connect_timeout` (`AVITO_CONNECT_TIMEOUT`, default 10 s)
 - `RequestService::renewToken()`: requests a new token, saves it and uses it for the following requests
+- A token received by the running process is renewed a minute before it expires (`expires_in`), so queue workers and Octane don't send an expired token
+- `MessengerChatContextValueDTO::$userId`
+- `.gitattributes`: LF line endings in every checkout, and development files (tests, CI, tool configs) are left out of the installed package
 
 ### Changed
-- `GetSetTokenAction::getFromExternal()` now saves the new token to the storage and uses it for the following requests; before, the token was returned only, while Avito may revoke the previous one
-- The service provider registers the repositories from an explicit list instead of scanning the `Repositories/Http` folder (and reading every file) on each application boot. `getClassFromFile()`, `isRepositoryClass()` and `createRepositoryInstance()` are removed from `PackageServiceProvider`; a new repository is added to `getRepositories()`
-- Publishing of the config and the migration (tags `config` and `migrations`) moved into `PackageServiceProvider::boot()`; the unused untagged publishing and migration loading there are removed
-- Repositories no longer pass the unused `token` argument to `RequestService`; `BaseHttpRepository::$token` is deprecated and will be removed in 2.0
-- All repositories share one `RequestService` (singleton), so they use the same access token: after a refresh in one repository the others do not request another one
+- Access tokens are stored encrypted with the application key (`APP_KEY`), in the file and in the database. A token stored in plain text by an older version, or encrypted with a previous `APP_KEY`, is treated as missing and a new token is requested once
+- `FileStorage` reads and writes the token file under a file lock, so queue workers no longer overwrite each other's tokens
+- All repositories share one `RequestService` (singleton) and therefore one access token
 - On `401`/`403` the token from storage is tried first if another repository or process has already refreshed it; a token received less than a minute ago is not refreshed again (the error is not an expiry, e.g. a missing scope)
-- `BaseHttpRepository::getToken()` reuses `RequestService::requestToken()` instead of duplicating the token request
-- The `ClientResponseException` constructor is now `final`, because `fromResponse()` creates subclasses with `new static`. Subclasses can still add methods, but a subclass that overrides the constructor must be changed
+- `GetSetTokenAction::getFromExternal()` saves the new token and uses it for the following requests; before, the token was only returned, while Avito may revoke the previous one
+- The service provider registers the repositories from an explicit list (`PackageServiceProvider::getRepositories()`) instead of scanning the `Repositories/Http` folder on every application boot
+- Publishing of the config and the migration (tags `config` and `migrations`) moved into `PackageServiceProvider::boot()`
+- `BaseHttpRepository::getToken()` reuses `RequestService::requestToken()`
+- The `ClientResponseException` constructor is `final`, because `fromResponse()` creates subclasses with `new static`
+- `RequestAttachVO` is a plain `final readonly` class instead of a spatie Data object
+- `BaseHttpRepository::$apiUrl` is readonly
 - Release workflow updates an existing GitHub release with the same tag (title and notes from this changelog) instead of failing
 
+### Removed
+- `RequestService::sendRequest()` parameters `$token` (always ignored) and `$withAttach` (a multipart request is sent whenever `$attachData` is given)
+- `BaseHttpRepository::$token` (always null)
+- `MessengerChatContextValueDTO::$user_id`, use `$userId`
+- `getBalance()` no longer sends the redundant `user_id` query parameter
+- `PackageServiceProvider::getClassFromFile()`, `isRepositoryClass()` and `createRepositoryInstance()`
+
 ### Fixed
-- `uploadImage()` with a missing or unreadable file throws `InvalidArgumentException` ("Image file not found or not readable: …") before any HTTP request, instead of a PHP warning from `file_get_contents()`
+- `uploadImage()` with a missing or unreadable file throws `InvalidArgumentException` ("Image file not found or not readable: ...") before any HTTP request, instead of a PHP warning from `file_get_contents()`
 
 ## [1.4.1] - 2026-11-28
 
@@ -124,7 +139,8 @@ release workflow publishes this section as the GitHub release notes.
 ### Added
 - First release: authorization, account info, balance, operations history, chats and messages
 
-[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.1...HEAD
+[Unreleased]: https://github.com/Voyanara/avito-laravel-client/compare/1.5.0...HEAD
+[1.5.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.1...1.5.0
 [1.4.1]: https://github.com/Voyanara/avito-laravel-client/compare/1.4.0...1.4.1
 [1.4.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.3.0...1.4.0
 [1.3.0]: https://github.com/Voyanara/avito-laravel-client/compare/1.2.1...1.3.0

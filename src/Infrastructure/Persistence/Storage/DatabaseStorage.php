@@ -2,6 +2,7 @@
 
 namespace Voyanara\LaravelApiClient\Infrastructure\Persistence\Storage;
 
+use Illuminate\Contracts\Encryption\DecryptException;
 use Override;
 use Voyanara\LaravelApiClient\Domain\Enums\GrantTypesEnum;
 use Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface;
@@ -29,6 +30,11 @@ readonly class DatabaseStorage implements TokenStorageInterface
     {
         $client = $this->avitoClientsRepositories->getClientByCredentials($clientId, $clientSecret);
 
-        return $client?->access_token;
+        try {
+            return $client?->access_token;
+        } catch (DecryptException) {
+            // A plain text token of an older version or a rotated APP_KEY: a new token will be requested.
+            return null;
+        }
     }
 }

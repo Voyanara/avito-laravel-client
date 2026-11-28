@@ -86,7 +86,7 @@ it('does not request another token when a freshly issued one is rejected', funct
         ->and(recordedUrls())->toBe([TOKEN_URL, SELF_URL, SELF_URL]);
 });
 
-it('refreshes a token issued long ago when it expires', function () {
+it('refreshes a token issued long ago when Avito rejects it', function () {
     Http::fake([
         'api.avito.ru/token' => Http::sequence()
             ->push(avitoToken('first-token'))
@@ -100,7 +100,8 @@ it('refreshes a token issued long ago when it expires', function () {
     $client = app(Client::class);
     $client->user()->self();
 
-    $this->travel(25)->hours();
+    // Still valid by expires_in (24 h), but revoked by Avito.
+    $this->travel(2)->hours();
 
     expect($client->user()->self()->id)->toBe(42)
         ->and(recordedUrls())->toBe([TOKEN_URL, SELF_URL, SELF_URL, TOKEN_URL, SELF_URL])

@@ -66,5 +66,10 @@ class TestCase extends Orchestra
             'database' => __DIR__.'/database.sqlite',
             'prefix' => '',
         ]);
+
+        // Tokens are stored encrypted: use APP_KEY from .env.testing or a random one.
+        if (! $app['config']->get('app.key')) {
+            $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
+        }
     }
 }

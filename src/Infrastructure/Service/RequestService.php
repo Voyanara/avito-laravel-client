@@ -25,6 +25,12 @@ class RequestService
      */
     protected const int FRESH_TOKEN_SECONDS = 60;
 
+    /**
+     * A token issued by this instance is renewed this many seconds before it expires,
+     * so long-running processes (queue workers, Octane) don't send an expired token.
+     */
+    protected const int RENEW_BEFORE_EXPIRY_SECONDS = 60;
+
     protected ?TokenStorageInterface $tokenStorage = null;
 
     protected ?string $clientId = null;
@@ -40,11 +46,14 @@ class RequestService
     protected ?string $accessToken = null;
 
     /**
-     * Token this instance received from /token and when, see FRESH_TOKEN_SECONDS.
+     * Token this instance received from /token, when and when it expires.
+     * The age of a token read from storage is unknown.
      */
     protected ?string $issuedToken = null;
 
     protected ?int $issuedAt = null;
+
+    protected ?int $expiresAt = null;
 
     /**
      * Устанавливает данные для обновления токена
@@ -62,6 +71,9 @@ class RequestService
     }
 
     /**
+     * Sends a request to the Avito API. With $attachData a POST request is sent as multipart,
+     * with $asJson a POST/PUT body is sent as JSON, otherwise as a form (GET: query string).
+     *
      * @throws ClientResponseException
      * @throws TokenValidException
      * @throws TooManyRequestsException
@@ -70,19 +82,14 @@ class RequestService
         string $method = 'GET',
         array $data = [],
         bool $isTokenRequired = true,
-        ?string $token = null,
         bool $asJson = false,
-        bool $withAttach = false,
         ?RequestAttachVO $attachData = null,
     ): array {
         $canRefresh = $isTokenRequired && $this->canRefreshToken();
-
-        if ($canRefresh) {
-            $token = $this->currentToken();
-        }
+        $token = $canRefresh ? $this->currentToken() : null;
 
         try {
-            return $this->executeWithRetry($url, $method, $data, $isTokenRequired, $token, $asJson, $withAttach, $attachData);
+            return $this->executeWithRetry($url, $method, $data, $isTokenRequired, $token, $asJson, $attachData);
         } catch (TokenValidException $e) {
             if (! $canRefresh) {
                 throw $e;
@@ -90,7 +97,7 @@ class RequestService
 
             $newToken = $this->tokenAfterRejection($token, $e);
 
-            return $this->executeWithRetry($url, $method, $data, $isTokenRequired, $newToken, $asJson, $withAttach, $attachData);
+            return $this->executeWithRetry($url, $method, $data, $isTokenRequired, $newToken, $asJson, $attachData);
         }
     }
 
@@ -111,6 +118,25 @@ class RequestService
         return TokenResponse::from($this->executeRequest(($this->apiUrl ?? '').'/token', 'POST', $data, false));
     }
 
+    /**
+     * Requests a new token, saves it to the storage and uses it for the following requests.
+     *
+     * @throws ClientResponseException
+     * @throws TokenValidException
+     */
+    public function renewToken(): TokenResponse
+    {
+        $tokenResponse = $this->requestToken();
+
+        $this->tokenStorage->set($tokenResponse, $this->clientId, $this->clientSecret);
+
+        $this->accessToken = $this->issuedToken = $tokenResponse->accessToken;
+        $this->issuedAt = now()->getTimestamp();
+        $this->expiresAt = $this->issuedAt + $tokenResponse->expiresIn;
+
+        return $tokenResponse;
+    }
+
     protected function canRefreshToken(): bool
     {
         return $this->tokenStorage instanceof TokenStorageInterface && $this->clientId !== null && $this->clientSecret !== null;
@@ -118,13 +144,23 @@ class RequestService
 
     /**
      * Returns the token in use: from memory, then from storage, otherwise requests a new one.
+     * A token issued by this instance is renewed shortly before it expires.
      *
      * @throws ClientResponseException
      * @throws TokenValidException
      */
     protected function currentToken(): string
     {
+        if ($this->accessToken !== null && $this->accessToken === $this->issuedToken && $this->expiresSoon()) {
+            return $this->refreshToken();
+        }
+
         return $this->accessToken ??= $this->tokenStorage->get($this->clientId, $this->clientSecret) ?: $this->refreshToken();
+    }
+
+    protected function expiresSoon(): bool
+    {
+        return $this->expiresAt !== null && now()->getTimestamp() >= $this->expiresAt - static::RENEW_BEFORE_EXPIRY_SECONDS;
     }
 
     /**
@@ -153,24 +189,6 @@ class RequestService
     }
 
     /**
-     * Requests a new token, saves it to the storage and uses it for the following requests.
-     *
-     * @throws ClientResponseException
-     * @throws TokenValidException
-     */
-    public function renewToken(): TokenResponse
-    {
-        $tokenResponse = $this->requestToken();
-
-        $this->tokenStorage->set($tokenResponse, $this->clientId, $this->clientSecret);
-
-        $this->accessToken = $this->issuedToken = $tokenResponse->accessToken;
-        $this->issuedAt = now()->getTimestamp();
-
-        return $tokenResponse;
-    }
-
-    /**
      * Обновляет токен и возвращает новое значение
      *
      * @throws ClientResponseException
@@ -195,7 +213,6 @@ class RequestService
         bool $isTokenRequired,
         ?string $token,
         bool $asJson,
-        bool $withAttach,
         ?RequestAttachVO $attachData,
     ): array {
         $retries = $method === 'GET' ? max(0, (int) config('avito.retry.times', 1)) : 0;
@@ -203,7 +220,7 @@ class RequestService
 
         for ($attempt = 0; ; $attempt++) {
             try {
-                return $this->executeRequest($url, $method, $data, $isTokenRequired, $token, $asJson, $withAttach, $attachData);
+                return $this->executeRequest($url, $method, $data, $isTokenRequired, $token, $asJson, $attachData);
             } catch (TooManyRequestsException $e) {
                 $wait = $e->retryAfter ?? 1;
 
@@ -229,7 +246,6 @@ class RequestService
         bool $isTokenRequired = true,
         ?string $token = null,
         bool $asJson = false,
-        bool $withAttach = false,
         ?RequestAttachVO $attachData = null,
     ): array {
         Log::debug('Avito API request: '.$method.' '.$url);
@@ -245,11 +261,11 @@ class RequestService
             ->timeout((int) config('avito.timeout', 30))
             ->connectTimeout((int) config('avito.connect_timeout', 10));
 
-        if ($asJson && in_array($method, ['POST', 'PUT'], true)) {
-            $response = $request->{$method}($url, $data);
-        } elseif ($method === 'POST' && $withAttach && $attachData) {
+        if ($method === 'POST' && $attachData !== null) {
             $response = $request->attach($attachData->name, $attachData->content, $attachData->filename)
-                ->{$method}($url, $data);
+                ->post($url, $data);
+        } elseif ($asJson && in_array($method, ['POST', 'PUT'], true)) {
+            $response = $request->{$method}($url, $data);
         } else {
             $response = $request->asForm()->{$method}($url, $data);
         }

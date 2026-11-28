@@ -33,7 +33,6 @@ it('stores the token in the database', function () {
     $this->assertDatabaseHas('avito_module_clients', [
         'client_id' => md5('test-client'),
         'client_secret' => md5('test-secret'),
-        'access_token' => 'db-token',
     ]);
 
     expect(app(TokenStorageInterface::class)->get('test-client', 'test-secret'))->toBe('db-token');

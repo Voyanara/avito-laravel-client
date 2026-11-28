@@ -61,6 +61,7 @@ foreach ($chats->chats as $chat) {
 
 | Package version | PHP | Laravel |
 |---|---|---|
+| `1.5.x` | 8.3 · 8.4 · 8.5 | 12 · 13 |
 | `1.4.x` | 8.3 · 8.4 · 8.5 | 12 · 13 |
 | `1.3.x` | 8.3 · 8.4 · 8.5 | 12 · 13 |
 | `1.2.x` | 8.3 · 8.4 · 8.5 | 11 · 12 · 13 |
@@ -323,8 +324,10 @@ The package uses the OAuth 2.0 `client_credentials` flow:
 
 | Storage | Where the token lives |
 |---|---|
-| `file` | `storage/app/avito_module/{TOKEN_FILE_NAME}.json`, keyed by a hash of your credentials |
+| `file` | `storage/app/avito_module/{TOKEN_FILE_NAME}.json`, keyed by a hash of your credentials; read and written under a file lock, so queue workers can share it |
 | `database` | `avito_module_clients` table (credentials are stored as hashes) |
+
+In both storages the token is encrypted with your application key (`APP_KEY`). After changing `APP_KEY` (or upgrading from a version below 1.5, which stored tokens in plain text) the stored token can't be read, and the package requests a new one once.
 
 To use your own storage (Redis, cache, encrypted column…), implement `Voyanara\LaravelApiClient\Domain\Interfaces\TokenStorageInterface` and bind it in a service provider:
 

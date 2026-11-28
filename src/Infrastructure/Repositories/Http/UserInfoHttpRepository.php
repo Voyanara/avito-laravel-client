@@ -47,11 +47,8 @@ class UserInfoHttpRepository extends BaseHttpRepository
      */
     public function getUserBalance(int $userId): UserInfoBalanceResponse
     {
-        $url = $this->apiUrl.'/core/v1/accounts/'.$userId.'/balance';
-        $data = [
-            'user_id' => $userId,
-        ];
-        $response = $this->requestService->sendRequest($url, data: $data, asJson: true);
+        // user_id is part of the path; a GET request has no body.
+        $response = $this->requestService->sendRequest($this->apiUrl.'/core/v1/accounts/'.$userId.'/balance');
 
         return UserInfoBalanceResponse::from($response);
     }

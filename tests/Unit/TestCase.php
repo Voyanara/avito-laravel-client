@@ -38,5 +38,7 @@ abstract class TestCase extends Orchestra
     {
         $app['config']->set('avito.client_id', 'test-client');
         $app['config']->set('avito.secret', 'test-secret');
+        // Tokens are stored encrypted: a real application always has APP_KEY.
+        $app['config']->set('app.key', 'base64:'.base64_encode(random_bytes(32)));
     }
 }

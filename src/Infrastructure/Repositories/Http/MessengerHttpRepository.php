@@ -116,13 +116,9 @@ class MessengerHttpRepository extends BaseHttpRepository
         }
 
         $url = $this->apiUrl.'/messenger/v1/accounts/'.$userId.'/uploadImages';
-        $attach = RequestAttachVO::from([
-            'name' => 'uploadfile[]',
-            'content' => $content,
-            'filename' => basename($filePath),
-        ]);
+        $attach = new RequestAttachVO('uploadfile[]', $content, basename($filePath));
 
-        $response = $this->requestService->sendRequest($url, method: 'POST', withAttach: true, attachData: $attach);
+        $response = $this->requestService->sendRequest($url, method: 'POST', attachData: $attach);
 
         return UploadImageResponse::from(['id' => array_key_first($response), 'images' => $response[array_key_first($response)]]);
     }
