@@ -16,6 +16,9 @@ class MessengerChatContextValueDTO extends Data
         public readonly int $statusId,
         public readonly string $title,
         public readonly string $url,
+        /** @deprecated Use $userId. Will be removed in 2.0. */
         public readonly int $user_id,
+        /** Идентификатор владельца объявления (filled from user_id, like $user_id) */
+        public readonly ?int $userId = null,
     ) {}
 }

@@ -18,13 +18,13 @@ abstract class BaseHttpRepository
      * @throws ClientCredentialsException
      */
     public function __construct(
-        public string $apiUrl,
+        public readonly string $apiUrl,
         public readonly ?string $clientId,
         public readonly ?string $secret,
         public readonly TokenStorageInterface $tokenStorage,
         public readonly RequestService $requestService,
         /** @deprecated Not used since 1.2.1, always null: RequestService manages the token. Will be removed in 2.0. */
-        public ?string $token = null,
+        public readonly ?string $token = null,
     ) {
         $this->init();
     }
