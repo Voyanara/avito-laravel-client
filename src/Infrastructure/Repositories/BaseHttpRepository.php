@@ -13,7 +13,7 @@ use Voyanara\LaravelApiClient\Presentation\Responses\TokenResponse;
 abstract class BaseHttpRepository
 {
     /**
-     * @param  string|null  $token  Not used: the access token is resolved lazily by RequestService.
+     * The access token is not passed here: RequestService resolves it lazily and refreshes it.
      *
      * @throws ClientCredentialsException
      */
@@ -23,8 +23,6 @@ abstract class BaseHttpRepository
         public readonly ?string $secret,
         public readonly TokenStorageInterface $tokenStorage,
         public readonly RequestService $requestService,
-        /** @deprecated Not used since 1.2.1, always null: RequestService manages the token. Will be removed in 2.0. */
-        public readonly ?string $token = null,
     ) {
         $this->init();
     }
